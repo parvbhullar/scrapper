@@ -24,13 +24,13 @@ final class Profiles extends Model
         'title' => array('default'=>'','type'=>'string'),
         'gender' => array('default'=>'','type'=>'string'),
         'sourse' => array('default'=>'','type'=>'string'),
-        'profileStore' => array('default'=>1,'type'=>'integer'), # 1 targetDocument="ProfileStore", 2 cascade="persist"
+        'profileStore' => array('model'=> 'Model\\ProfileStore', 'type'=>'reference'), # array('model'=>'Purekid\Mongodm\Test\Model\Book','type'=>'reference') 1 targetDocument="ProfileStore", 2 cascade="persist"
         'industry' => array('default'=>'','type'=>'string'),
         'locality' => array('default'=>'','type'=>'string'),
         //** array field */
-        'outBoundProfilesLinks' => array('default'=>'','type'=>'string'), #targetDocument="OutBoundProfileLinks", cascade="persist"
-        'experience' => array('default'=>'','type'=>'string'), #targetDocument="Experience", cascade="persist"
-        'education' => array('default'=>'','type'=>'string'), #targetDocument="Education", cascade="persist"
+        'outBoundProfilesLinks' => array('model'=> 'Model\\OutBoundProfilesLinks', 'type'=>'references'), #targetDocument="OutBoundProfileLinks", cascade="persist"
+        'experience' => array('model'=> 'Model\\Experience', 'type'=>'references'), #targetDocument="Experience", cascade="persist"
+        'education' => array('model'=> 'Model\\Education', 'type'=>'references'), #targetDocument="Education", cascade="persist"
 
         'sourceService' => array('default'=>'','type'=>'string'),
         'resumeLastUpdated' => array('type'=>'timestamp'),

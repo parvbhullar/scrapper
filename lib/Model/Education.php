@@ -21,7 +21,7 @@ final class Education extends Model
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(
         'user_id' => array('default'=>'','type'=>'mixed'),
-        'topic_id' => array('default'=>'','type'=>'string'),
+        'profile' => array('model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
         'url' => array('default'=>'','type'=>'string'),
         'search_source' => array('default'=>'','type'=>'integer'),
         'time' => array('type'=>'timestamp'),
