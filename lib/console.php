@@ -1,3 +1,4 @@
+
 <?php
 /**
  * Created by PhpStorm.
@@ -24,6 +25,10 @@ class console {
                     echo "Command is\n";
                     echo "php lib/console.php scrap '<jsonFile>' '<htmlDir>' '<batchLimit>' \n";
                 }
+                break;
+            default:
+                echo "Available Commands\n";
+                echo "scrap\n";
                 break;
         }
     }
