@@ -1,0 +1,14 @@
+{
+    "name": "scrapper",
+    "description": "",
+    "autoload": {
+        "psr-0": {
+            "": "lib/"
+        }
+    },
+    "require": {
+        "php": ">=5.5.0",
+        "purekid/mongodm": "dev-master",
+        "fabpot/goutte": "2.0.2"
+    }
+}
