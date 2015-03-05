@@ -36,6 +36,7 @@ final class ScrapperService
         foreach($list as $l){
             if(isset($l['hash']) && isset($l['url'])){
                 $filePath = $htmlDir.DIRECTORY_SEPARATOR.$l['hash'].".html";
+                echo "Scraping url ".$l['url']. " file path - $filePath\n";
                 $json = $this->scrapAll($l['url'], $filePath);
                 if($json){
                     $jsonList[] = $json;

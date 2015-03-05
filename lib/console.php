@@ -14,9 +14,16 @@ class console {
         switch($command)
         {
             case "scrap":
-                $dir = isset($argv[2])? $argv[2] : "";
-
-
+                $jsonFile = isset($argv[2])? $argv[2] : "";
+                $dir = isset($argv[3])? $argv[3] : "";
+                $batch = isset($argv[4])? $argv[4] : 50;
+                if($jsonFile && $dir){
+                    $scrpService = new \Services\ScrapperService();
+                    $scrpService->metaToJson($jsonFile, $dir, $batch);
+                } else {
+                    echo "Command is\n";
+                    echo "php lib/console.php scrap '<jsonFile>' '<htmlDir>' '<batchLimit>' \n";
+                }
                 break;
         }
     }
