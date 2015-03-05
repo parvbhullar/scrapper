@@ -24,14 +24,14 @@ final class Experience extends Model
 
         'role' => array('default'=>'','type'=>'string'),
         'companyName' => array('default'=>'','type'=>'string'),
-        '$industry' => array('default'=>'','type'=>'string'),
+        'industry' => array('default'=>'','type'=>'string'),
         'fromdate' => array('type'=>'timestamp'),
         'todate' => array('type'=>'timestamp'),
         'duration' => array('default'=>'','type'=>'string'),
         'current' => array('type'=>'boolean'),
         'location' => array('default'=>'','type'=>'string'),
         'description' => array('default'=>'','type'=>'string'),
-        '$seq' => array('default'=>0,'type'=>'integer'),
+        'seq' => array('default'=>0,'type'=>'integer'),
 
         'status' => array('default'=>1, 'type'=>'integer'), #0 deactive, 1 active, 2 deleted
         'created_by' => array('default'=>'Unknown','type'=>'string'),
