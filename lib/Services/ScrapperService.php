@@ -16,8 +16,49 @@ final class ScrapperService
 
     }
 
-    public function readJsonNScrap($jsonDir, $htmlDir){
+    public function readJson($jsonFilePath){
+        $file = new \SplFileObject($jsonFilePath);
+        $i=0;
+        $list = [];
+        while (!$file->eof()) {
+            $jsonRow = $file->fgets();
+            $jsonData = json_decode($jsonRow, true);
+            $list[] = $jsonData;
+            $i++;
+        }
+        return $list;
+    }
 
+    public function metaToJson($jsonPath, $htmlDir, $batch = 10){
+        $list = $this->readJson($jsonPath);
+        $jsonList = [];
+        $i = 1;
+        foreach($list as $l){
+            if(isset($l['hash']) && isset($l['url'])){
+                $filePath = $htmlDir.DIRECTORY_SEPARATOR.$l['hash'].".html";
+                $json = $this->scrapAll($l['url'], $filePath);
+                if($json){
+                    $jsonList[] = $json;
+                    if($batch == $i){
+                        //create profile
+                        $this->createProfiles($jsonList);
+                        $jsonList = [];
+                        $i = 1;
+                    }
+                    $i++;
+                }
+            }
+        }
+
+    }
+
+    public function createProfiles($jsonList){
+        foreach($jsonList as $json){
+            //create profiles object
+            //education object
+            //experience object
+            //outbound object
+        }
     }
 
     public function scrapAll($url, $path){
@@ -50,8 +91,21 @@ final class ScrapperService
                 )),
         );
 
-
+        $content = $this->getFileContents($path);
+        if($content){
+            return $this->scrap($url, $paths, false, $content);
+        }
+        return false;
     }
+
+    public function getFileContents($path) {
+        if(isset($path) && $path != '/.html') {
+            $bytes = file_get_contents($path);
+            return $bytes;
+        }
+        return false;
+    }
+
 
     public function scrap($url, $cssPaths, $objectRoot = false, $content = null, $depth = 0){
         $start_time = time();
@@ -69,11 +123,7 @@ final class ScrapperService
         $end_time = time();
         $duration = $end_time - $start_time;
 
-        $this->time = $duration;
-        $this->total = count($data);
-        $this->data = $data;
-
-        return array('time' => $duration, 'total' => count($data), 'data' => $data);
+        return $data;// array('time' => $duration, 'total' => count($data), 'data' => $data);
     }
 
 }
