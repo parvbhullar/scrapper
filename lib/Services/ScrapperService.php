@@ -4,6 +4,7 @@ use Model\OutBoundProfileLinks;
 use Model\Education;
 use Model\Experience;
 use Model\Profiles;
+use Model\SHMetadata;
 use Purekid\Mongodm\Collection;
 
 /**
@@ -84,7 +85,6 @@ final class ScrapperService
         $name = $this->getDataByKey($data, 'name', true);
 
         if($name){
-          //  $profile = new Profiles();
             $profile->name =$name;
             $profile->title = $this->getDataByKey($data, 'title', true);
             $profile->gender = $this->getGender($name);
@@ -101,7 +101,7 @@ final class ScrapperService
             $profile->sourceService =  $this->getDataByKey($data, 'sourceService', true);
             $profile->resumeLastUpdated = null;// $this->getValidDate($this->getText($profile['resumeLastUpdated']));
             $profile->updatedInES = false;// $this->getDataByKey($data, 'updatedInES', true);
-            $profile->shMetadata =  1;
+            $profile->shMetadata = $this->parseSHMetadata($data, $profile);
 
             $s = 2; //Set status Parsed
             $profile->status = $s;
@@ -110,7 +110,7 @@ final class ScrapperService
 //            $profile->Initialize();
 
             $profile->id = $profile->Add();
-          //  print_r($profile);exit;
+            print_r($profile);exit;
         }
 
         return $profile;
@@ -197,6 +197,37 @@ final class ScrapperService
             //$profile = $this->getProfile();
           //  $this->_print(count($list)." experiences added");
 
+        }
+        return $profile;
+    }
+
+    public function parseSHMetadata($data, $profile)
+    {
+        $list = $this->getDataByKey($data, 'shMetadata');
+        if($list){
+            $oList = [];
+            $i = 1;
+            foreach($list as $shmdata){
+                $shmd = new SHMetadata();
+                $shmd->id = new \MongoId(null);
+                $shmd->hash=$this->getText($shmdata["hash"]);
+                $shmd->zipResumesS3path=$this->getText($shmdata["zipResumesS3path"]);
+                $shmd->zipMetadataS3path=$this->getText($shmdata["zipMetadataS3path"]);
+                $shmd->downloadedResumesPath=$this->getText($shmdata["downloadedResumesPath"]);
+                $shmd->downloadedMetadataPath=$this->getText($shmdata["downloadedMetadataPath"]);
+                $shmd->currentJob=$this->getText($shmdata["currentJob"]);
+                $shmd->previousJobs=$this->getText($shmdata["previousJobs"]);
+
+                $shmd->profile = $profile;
+
+                $s = 0;
+                $shmd->status = $s;
+                $shmd->Add();
+                $oList[] = $shmd;
+                $i++;
+            }
+           $profile->shMetadata = Collection::make($oList);;
+            //  $this->_print(count($list)." educations added");
         }
         return $profile;
     }
