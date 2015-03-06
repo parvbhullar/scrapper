@@ -67,7 +67,8 @@ final class Profiles extends Model
     public function IsExists()
     {
         try{
-            $data = Profiles::id($this->getId());
+            $data = Profiles::one(array("source" => $this->source));
+
             if (empty($data))
             {  return false;}
             else

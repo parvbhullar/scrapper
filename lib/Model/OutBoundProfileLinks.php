@@ -52,7 +52,7 @@ final class OutBoundProfileLinks extends Model
     public function IsExists()
     {
         try{
-            $data = OutBoundProfileLinks::id($this->getId());
+            $data = OutBoundProfileLinks::one(array("source" => $this->source));
             if (empty($data))
             {  return false;}
             else

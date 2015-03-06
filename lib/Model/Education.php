@@ -60,7 +60,8 @@ final class Education extends Model
     public function IsExists()
     {
         try{
-            $data = Education::id($this->getId());
+            $data = Education::one(array("profile" => $this->profile, "school" => $this->school, "degree" => $this->degree
+            , "year" => $this->year, "program" => $this->program));
             if (empty($data))
             {  return false;}
             else

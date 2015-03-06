@@ -61,7 +61,8 @@ final class Experience extends Model
     public function IsExists()
     {
         try{
-            $data = Experience::id($this->getId());
+            $data = Experience::one(array("profile" => $this->profile, "role" => $this->role, "companyName" => $this->companyName
+            , "fromDate" => $this->fromDate, "toDate" => $this->toDate));
             if (empty($data))
             {  return false;}
             else
