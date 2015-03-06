@@ -39,11 +39,11 @@ final class ScrapperService
         foreach($list as $l){
             if(isset($l['hash']) && isset($l['url'])){
                 $filePath = $htmlDir.DIRECTORY_SEPARATOR.$l['hash'].".html";
-                echo "Scraping url ".$l['url']. " file path - $filePath\n";
+//                echo "Scraping url ".$l['url']. " file path - $filePath\n";
                 $json = $this->scrapAll($l['url'], $filePath);
                 if($json){
-                    $d = dirname($htmlDir)."/file.json";
-//                   file_put_contents($d, json_encode($json));exit;
+                    $d = dirname(dirname(__DIR__))."/file.json";
+//                   file_put_contents($d, json_encode($json));
                     $jsonList[$l['url']] = $json;
                     if($batch == $i){
                         //create profile
@@ -60,8 +60,10 @@ final class ScrapperService
 
     public function createProfiles($jsonList){
         foreach($jsonList as $url=>$json){
-
-            $this->parseProfile($json);
+            $profile = $this->parseProfile($json);
+            $d = dirname(dirname(__DIR__))."/file.json";
+            echo("Parsing for $url\n");
+//            file_put_contents($d, json_encode($profile->toArray()));
             //create profiles object
             //education object
             //experience object
@@ -69,33 +71,33 @@ final class ScrapperService
         }
     }
 
-    public function parseProfile($profile)
+    public function parseProfile($data)
     {
-//        $profile = $this->getProfile();
+        $profile = new Profiles();
 //        $this->currentProfile = $profile;
-        $name = $this->getDataByKey('name', true);
+        $name = $this->getDataByKey($data, 'name', true);
 
         if($name){
           //  $profile = new Profiles();
             $profile->name =$name;
-            $profile->title = $this->getDataByKey('title', true);
+            $profile->title = $this->getDataByKey($data, 'title', true);
             $profile->gender = $this->getGender($name);
-            $profile->profileStore = $this->getDataByKey($profile,'profileStore');
+//            $profile->profileStore = $this->getDataByKey($data, $profile,'profileStore');
 
-            $profile->source =  $this->getDataByKey('source', true);
-            $profile->industry = $this->getDataByKey('industry', true);
-            $profile->locality = $this->getDataByKey('locality', true);
+            $profile->source =  $this->getDataByKey($data, 'source', true);
+            $profile->industry = $this->getDataByKey($data, 'industry', true);
+            $profile->locality = $this->getDataByKey($data, 'locality', true);
 
-            $profile->outBoundProfilesLinks =  $this->parseOutgoingLinks($profile);
-            $profile->experience =  $this->parseExperience($profile);
-            $profile->education =  $this->parseEducation($profile);
+            $profile =  $this->parseOutgoingLinks($data, $profile);
+            $profile =  $this->parseExperience($data, $profile);
+            $profile =  $this->parseEducation($data, $profile);
 
-            $profile->sourceService =  $this->getDataByKey('sourceService', true);
+            $profile->sourceService =  $this->getDataByKey($data, 'sourceService', true);
             $profile->resumeLastUpdated =  $this->getValidDate($this->getText($profile['resumeLastUpdated']));
-            $profile->updatedInES =  $this->getDataByKey('updatedInES', true);
+            $profile->updatedInES = false;// $this->getDataByKey($data, 'updatedInES', true);
             $profile->shMetadata =  1;
 
-            $s = 0;
+            $s = 2; //Set status Parsed
             $profile->status = $s;
 
 //            $this->setProfile($profile);
@@ -103,13 +105,13 @@ final class ScrapperService
         return $profile;
     }
 
-    public function parseEducation($profile)
+    public function parseEducation($data, $profile)
     {
-        $list = $this->getDataByKey('education',true);
-        $p = new Profiles();
+        $list = $this->getDataByKey($data, 'education');
         if($list){
             $i = 1;
 //            $profile = $this->deleteEducation($profile, $profile->getEducation());
+            $oList = [];
             foreach($list as $edu){
                 $e = new Education();
                 $e->school=$this->getText($edu["school"]);
@@ -128,22 +130,25 @@ final class ScrapperService
                 $e->status = $s;
                // $profile->addEducation($e);
 //                $this->addEducation($e);
+                $oList[] = $e;
                 $i++;
             }
+            $profile->education = $oList;
           //  $this->_print(count($list)." educations added");
         }
-        return $e;
+        return $profile;
     }
 
-    public function parseExperience($profile)
+    public function parseExperience($data, $profile)
     {
-        $list = $this->getDataByKey('experience',true);
+        $list = $this->getDataByKey($data, 'experience');
         if($list){
 //            print_r($list);
 //            $list = $this->sortDate($list);
 //            print_r($list);
 //            $profile = $this->deleteExperience($profile, $profile->getExperience());
             $i = 1;
+            $oList = [];
             foreach($list as $expArr){
                 $ex = new Experience();
                 $ex->companyName = $this->getText($expArr['company']);
@@ -167,28 +172,49 @@ final class ScrapperService
                    // $profile->addExperience($ex);
                     $ex->profile = $profile;
                 }
+                $oList[] = $ex;
                 $i++;
                 $s = 0;
                 $ex->status = $s;
             }
+            $profile->experience = $oList;
             //Reset Seq
             //$profile = $this->getProfile();
           //  $this->_print(count($list)." experiences added");
 
         }
-        return $ex;
+        return $profile;
+    }
+
+    public function dateDuration($start, $to)
+    {
+        if(isset($start) && isset($end)) {
+            $start = $this->formatDate($start);
+            $end = $this->formatDate($to);
+            return $start->diff($end);
+        }
+        return null;
+    }
+    public function formatDate($date) {
+        if(isset($date)) {
+            $date = new \DateTime($date);
+            return $date;
+        }
+        else
+            return null;
     }
 
     public function getCurrent($exp){
 
     }
 
-    public function parseOutgoingLinks($data,$profile)
+    public function parseOutgoingLinks($data, $profile)
     {
         $list = $this->getDataByKey($data, 'side_profiles');
         if($list){
 //            $profile = $this->getProfile();
 //            $this->deleteOutboundLinks($profile->getOutBoundProfilesLinks());
+            $oList = [];
             foreach($list as $sProfile){
                 $url = $this->getHref($sProfile['name']);
                 $obl = false;//$this->getRepo('CrawlBundle:Profiles')->findOutboundLink($url);
@@ -201,9 +227,10 @@ final class ScrapperService
                     $s = 0;
                     $obl->status= $s;
                     $obl->profile = array($profile);
-                    $profile->addOutBoundProfilesLink($obl);
+                    $oList[] = $obl;
                 }
             }
+            $profile->outBoundProfilesLinks = $oList;
 //            $this->_print(count($list)." side profiles added");
         }
         return $profile;
@@ -339,6 +366,8 @@ final class ScrapperService
         $content = $this->getFileContents($path);
         if($content){
             return $this->scrap($url, $paths, false, $content);
+        } else {
+            echo("Content not found\n");
         }
         return false;
     }
@@ -367,7 +396,6 @@ final class ScrapperService
         $data = $simple_crawler->getLinksInfo();
         $end_time = time();
         $duration = $end_time - $start_time;
-
         return $data;// array('time' => $duration, 'total' => count($data), 'data' => $data);
     }
     public function getGender($name) {

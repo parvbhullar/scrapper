@@ -41,5 +41,5 @@ class console {
     }
 
 }
-
+//php lib/console.php scrap "H:\IINCORE\COLLEGEFEED\scrap-hero-data\li.json" "H:\IINCORE\COLLEGEFEED\scrap-hero-data\htmls" 50
 $app = new Console($argv);
