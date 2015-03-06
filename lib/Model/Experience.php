@@ -36,7 +36,42 @@ final class Experience extends Model
         'created_by' => array('default'=>'Unknown','type'=>'string'),
         'created_at' => array('type'=>'date')
     );
+    public function Add(){
+        try
+        {
+            $res = $this->IsExists();
+            if($res != false)
+            {
+                $obj = Experience::id($res);
+                //print_r($obj); exit;
+                $obj->update($this->toArray($this->excluded));
+                $obj->save();
+                return $res;
+            }
+            $this->save();
+            return $this->getId();
+        }
+        catch(\Exception $ex){
+            // \G::$logger->Log($ex, "Error");
+            throw $ex;
+        }
+    }
 
+
+    public function IsExists()
+    {
+        try{
+            $data = Experience::id($this->getId());
+            if (empty($data))
+            {  return false;}
+            else
+                return $data->getId();
+        }
+        catch(\Exception $ex){
+            //  \G::$logger->Log($ex, "Error");
+            throw $ex;
+        }
+    }
 }
 
 ?>

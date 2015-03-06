@@ -12,6 +12,7 @@ class console {
     private $argv = array();
     public function __construct($argv){
         $command = isset($argv[1])? $argv[1] : "Undefined";
+
         switch($command)
         {
             case "scrap":
@@ -19,6 +20,15 @@ class console {
                 $dir = isset($argv[3])? $argv[3] : "";
                 $batch = isset($argv[4])? $argv[4] : 50;
                 if($jsonFile && $dir){
+                    \Purekid\Mongodm\MongoDB::setConfigBlock('default', array(
+                        'connection' => array(
+                            'hostnames' => 'localhost',
+                            'database'  => 'scrapper',
+//                            'username'  => 'root',
+//                            'password'  => '',
+                            'options'  => array()
+                        )
+                    ));
                     $scrpService = new \Services\ScrapperService();
                     $scrpService->metaToJson($jsonFile, $dir, $batch);
                 } else {
@@ -27,6 +37,7 @@ class console {
                 }
                 break;
             default:
+
                 echo "Available Commands\n";
                 echo "scrap\n";
                 break;

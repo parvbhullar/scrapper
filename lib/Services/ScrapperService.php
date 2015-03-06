@@ -64,6 +64,7 @@ final class ScrapperService
             $d = dirname(dirname(__DIR__))."/profile.json";
             echo("Parsing for $url\n");
             file_put_contents($d, json_encode($profile->toArray()));
+
             //create profiles object
             //education object
             //experience object
@@ -102,7 +103,12 @@ final class ScrapperService
             $profile->status = $s;
 
 //            $this->setProfile($profile);
+            $profile->Initialize();
+
+            $profile->id = $profile->Add();
+          //  print_r($profile);exit;
         }
+
         return $profile;
     }
 
