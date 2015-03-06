@@ -131,7 +131,7 @@ class SimpleScrapper{
             $this->site_links[$url_to_traverse]['status_code'] = $status_code;
 
             if ($status_code == 200) { // valid url and not reached depth limit yet
-                $content_type = $client->getResponse()->getHeader('Content-Type');
+                $content_type = $content ? 'text/html' : $client->getResponse()->getHeader('Content-Type');
                 if (strpos($content_type, 'text/html') !== false) { //traverse children in case the response in HTML document
 
                     if($this->extractInfo){

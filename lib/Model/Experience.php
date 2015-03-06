@@ -21,7 +21,6 @@ final class Experience extends Model
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(
         'profile' => array('model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
-
         'role' => array('default'=>'','type'=>'string'),
         'companyName' => array('default'=>'','type'=>'string'),
         'industry' => array('default'=>'','type'=>'string'),

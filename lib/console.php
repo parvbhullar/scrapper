@@ -39,4 +39,7 @@ class console {
         //
         //TODO call scrapper service to pass
     }
+
 }
+
+$app = new Console($argv);
