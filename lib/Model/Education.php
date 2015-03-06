@@ -16,7 +16,7 @@ final class Education extends Model
         $this->created_at = time();
         $this->created_by = $user;
     }
-    static $collection = "Education";
+    static $collection = "hq_education";
 
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(

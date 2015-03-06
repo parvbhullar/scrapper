@@ -4,6 +4,8 @@ use Model\OutBoundProfileLinks;
 use Model\Education;
 use Model\Experience;
 use Model\Profiles;
+use Purekid\Mongodm\Collection;
+
 /**
  *
  * @package
@@ -32,14 +34,15 @@ final class ScrapperService
         return $list;
     }
 
-    public function metaToJson($jsonPath, $htmlDir, $batch = 10){
+    public function metaToJson($jsonPath, $htmlDir, $batch = 10, $limit = 20){
         $list = $this->readJson($jsonPath);
         $jsonList = [];
-        $i = 1;
+        $i = $t = 1;
+        $start_time = time();
         foreach($list as $l){
             if(isset($l['hash']) && isset($l['url'])){
                 $filePath = $htmlDir.DIRECTORY_SEPARATOR.$l['hash'].".html";
-//                echo "Scraping url ".$l['url']. " file path - $filePath\n";
+                echo "Scraping url - $t";//.$l['url']. " file path - $filePath\n";
                 $json = $this->scrapAll($l['url'], $filePath);
                 if($json){
                     $d = dirname(dirname(__DIR__))."/file.json";
@@ -53,8 +56,16 @@ final class ScrapperService
                     }
                     $i++;
                 }
+                $t++;
+            }
+            if($t >= $limit){
+                break;
             }
         }
+        $end_time = time();
+        $duration = $end_time - $start_time;
+        $dv = new \DateInterval('PT'.$duration.'S');
+        echo("Whole Profile process took"." - ". $dv->m . " minutes ". $dv->s." seconds \n");
 
     }
 
@@ -62,13 +73,6 @@ final class ScrapperService
         foreach($jsonList as $url=>$json){
             $profile = $this->parseProfile($json[$url]);
             $d = dirname(dirname(__DIR__))."/profile.json";
-            echo("Parsing for $url\n");
-            file_put_contents($d, json_encode($profile->toArray()));
-
-            //create profiles object
-            //education object
-            //experience object
-            //outbound object
         }
     }
 
@@ -84,7 +88,7 @@ final class ScrapperService
             $profile->name =$name;
             $profile->title = $this->getDataByKey($data, 'title', true);
             $profile->gender = $this->getGender($name);
-//            $profile->profileStore = $this->getDataByKey($data, $profile,'profileStore');
+            $profile->profileStore = null;// $this->getDataByKey($data, $profile,'profileStore');
 
             $profile->source =  $this->getDataByKey($data, 'source', true);
             $profile->industry = $this->getDataByKey($data, 'industry', true);
@@ -103,7 +107,7 @@ final class ScrapperService
             $profile->status = $s;
 
 //            $this->setProfile($profile);
-            $profile->Initialize();
+//            $profile->Initialize();
 
             $profile->id = $profile->Add();
           //  print_r($profile);exit;
@@ -121,7 +125,7 @@ final class ScrapperService
             $oList = [];
             foreach($list as $edu){
                 $e = new Education();
-                $e->id(new \MongoId(null));
+                $e->id = new \MongoId(null);
                 $e->school=$this->getText($edu["school"]);
                 $e->degree=$this->getText($edu["degree"]);
                 $e->program=$this->getText($edu["major"]);
@@ -138,10 +142,11 @@ final class ScrapperService
                 $e->status = $s;
                // $profile->addEducation($e);
 //                $this->addEducation($e);
+                $e->Add();
                 $oList[] = $e;
                 $i++;
             }
-            $profile->education = $oList;
+            $profile->education = Collection::make($oList);;
           //  $this->_print(count($list)." educations added");
         }
         return $profile;
@@ -181,12 +186,13 @@ final class ScrapperService
                    // $profile->addExperience($ex);
                     $ex->profile = $profile;
                 }
+                $ex->Add();
                 $oList[] = $ex;
                 $i++;
                 $s = 0;
                 $ex->status = $s;
             }
-            $profile->experience = $oList;
+            $profile->experience = Collection::make($oList);
             //Reset Seq
             //$profile = $this->getProfile();
           //  $this->_print(count($list)." experiences added");
@@ -237,10 +243,11 @@ final class ScrapperService
                     $s = 0;
                     $obl->status= $s;
                     $obl->profile = $profile;
+                    $obl->Add();
                     $oList[] = $obl;
                 }
             }
-            $profile->outBoundProfilesLinks = $oList;
+            $profile->outBoundProfilesLinks = Collection::make($oList);;
 //            $this->_print(count($list)." side profiles added");
         }
         return $profile;

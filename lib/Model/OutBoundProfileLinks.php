@@ -16,7 +16,7 @@ final class OutBoundProfileLinks extends Model
         $this->created_at = time();
         $this->created_by = $user;
     }
-    static $collection = "OutBoundProfileLinks";
+    static $collection = "hq_outboundlinks";
 
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(

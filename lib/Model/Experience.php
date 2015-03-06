@@ -16,7 +16,7 @@ final class Experience extends Model
         $this->created_at = time();
         $this->created_by = $user;
     }
-    static $collection = "Experience";
+    static $collection = "hq_experience";
 
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(

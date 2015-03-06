@@ -20,15 +20,7 @@ class console {
                 $dir = isset($argv[3])? $argv[3] : "";
                 $batch = isset($argv[4])? $argv[4] : 50;
                 if($jsonFile && $dir){
-                    \Purekid\Mongodm\MongoDB::setConfigBlock('default', array(
-                        'connection' => array(
-                            'hostnames' => 'localhost',
-                            'database'  => 'scrapper',
-//                            'username'  => 'root',
-//                            'password'  => '',
-                            'options'  => array()
-                        )
-                    ));
+                    $this->init();
                     $scrpService = new \Services\ScrapperService();
                     $scrpService->metaToJson($jsonFile, $dir, $batch);
                 } else {
@@ -44,11 +36,16 @@ class console {
         }
     }
 
-    public function scrap($dir){
-        //files in files dir
-        //Load 100 files each create object and create json from that OR push to db in one batch
-        //
-        //TODO call scrapper service to pass
+    public function init(){
+        \Purekid\Mongodm\MongoDB::setConfigBlock('default', array(
+            'connection' => array(
+                'hostnames' => 'localhost',
+                'database'  => 'scrapper',
+//                            'username'  => 'root',
+//                            'password'  => '',
+                'options'  => array()
+            )
+        ));
     }
 
 }
