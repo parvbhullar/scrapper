@@ -60,10 +60,10 @@ final class ScrapperService
 
     public function createProfiles($jsonList){
         foreach($jsonList as $url=>$json){
-            $profile = $this->parseProfile($json);
-            $d = dirname(dirname(__DIR__))."/file.json";
+            $profile = $this->parseProfile($json[$url]);
+            $d = dirname(dirname(__DIR__))."/profile.json";
             echo("Parsing for $url\n");
-//            file_put_contents($d, json_encode($profile->toArray()));
+            file_put_contents($d, json_encode($profile->toArray()));
             //create profiles object
             //education object
             //experience object
@@ -74,6 +74,7 @@ final class ScrapperService
     public function parseProfile($data)
     {
         $profile = new Profiles();
+        $profile->id(new \MongoId(null));
 //        $this->currentProfile = $profile;
         $name = $this->getDataByKey($data, 'name', true);
 
@@ -93,7 +94,7 @@ final class ScrapperService
             $profile =  $this->parseEducation($data, $profile);
 
             $profile->sourceService =  $this->getDataByKey($data, 'sourceService', true);
-            $profile->resumeLastUpdated =  $this->getValidDate($this->getText($profile['resumeLastUpdated']));
+            $profile->resumeLastUpdated = null;// $this->getValidDate($this->getText($profile['resumeLastUpdated']));
             $profile->updatedInES = false;// $this->getDataByKey($data, 'updatedInES', true);
             $profile->shMetadata =  1;
 
@@ -114,6 +115,7 @@ final class ScrapperService
             $oList = [];
             foreach($list as $edu){
                 $e = new Education();
+                $e->id(new \MongoId(null));
                 $e->school=$this->getText($edu["school"]);
                 $e->degree=$this->getText($edu["degree"]);
                 $e->program=$this->getText($edu["major"]);
@@ -151,6 +153,7 @@ final class ScrapperService
             $oList = [];
             foreach($list as $expArr){
                 $ex = new Experience();
+                $ex->id(new \MongoId(null));
                 $ex->companyName = $this->getText($expArr['company']);
                 $ex->role=$this->getText($expArr['title']);
                 $ex->industry=$profile->getIndustry();
@@ -221,12 +224,13 @@ final class ScrapperService
 //                $this->_print($url);
                 if(!$obl){
                     $obl = new OutBoundProfileLinks();
+                    $obl->id(new \MongoId(null));
                     $obl->url = $url;
                     $obl->name = $this->getText($sProfile['name']);
                     $obl->summary = $this->getText($sProfile['description']);
                     $s = 0;
                     $obl->status= $s;
-                    $obl->profile = array($profile);
+                    $obl->profile = $profile;
                     $oList[] = $obl;
                 }
             }
@@ -404,8 +408,8 @@ final class ScrapperService
       //  $this->_print("Gender update from APIS : " . $firstName);
         $purl = 'http://api.genderize.io?name='.$firstName;
 
-        $this->curlURL($purl);
-        $json = $this->getResponse();
+        $json = $this->curlURL($purl);
+//        $json = $this->getResponse();
         $gender = json_decode($json, true);
      //   $this->_print("Name :".$name .": Gender :" . (isset($gender["gender"]) ? $gender["gender"] : "NA"));
 

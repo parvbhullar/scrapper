@@ -25,14 +25,14 @@ final class Education extends Model
         'school' => array('default'=>'','type'=>'string'),
         'degree' => array('default'=>'','type'=>'string'),
         'program' => array('default'=>'','type'=>'string'),
-        'fromdate' => array('type'=>'timestamp'),
-        'todate' => array('type'=>'timestamp'),
+        'fromDate' => array('type'=>'date'),
+        'toDate' => array('type'=>'date'),
         'year' => array('default'=>'','type'=>'string'),
         'gpa' => array('default'=>'','type'=>'string'),
         'seq' => array('default'=>'','type'=>'integer'),
         'status' => array('default'=>1, 'type'=>'integer'), #0 deactive, 1 active, 2 deleted
         'created_by' => array('default'=>'Unknown','type'=>'string'),
-        'created_at' => array('type'=>'timestamp')
+        'created_at' => array('type'=>'date')
     );
 
 }
