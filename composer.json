@@ -9,6 +9,8 @@
     "require": {
         "php": ">=5.5.0",
         "purekid/mongodm": "dev-master",
-        "fabpot/goutte": "2.0.2"
+        "jenssegers/mongodb": "4.2.*@dev",
+        "fabpot/goutte": "2.0.2",
+        "unusorin/pthreads": "0.1.*@dev"
     }
 }

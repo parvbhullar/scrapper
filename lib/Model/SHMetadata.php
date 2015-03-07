@@ -11,6 +11,7 @@ use Purekid\Mongodm\Model;
 final class SHMetadata extends Model
 {
     public $excluded = array('_id', 'created_by', 'created_at');
+    protected static $useType = false;
     public function Initialize($user = "Unknown"){
         $this->status = 1; // 0 Inactive, 1 Active, 2 Deleted
         $this->created_at = time();
@@ -20,7 +21,7 @@ final class SHMetadata extends Model
 
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(
-        'profile' => array('model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
+        'profile' => array('default'=> null, 'model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
 
         'hash' => array('default'=>'','type'=>'string'),
         'zipResumesS3path' => array('default'=>'','type'=>'string'),
@@ -30,9 +31,8 @@ final class SHMetadata extends Model
         'currentJob' => array('default'=>'','type'=>'string'),
         'previousJobs' => array('default'=>'','type'=>'string'),
 
-        'status' => array('default'=>1, 'type'=>'integer'), #0 deactive, 1 active, 2 deleted
-        'created_by' => array('default'=>'Unknown','type'=>'string'),
-        'created_at' => array('type'=>'date')
+        'updated_at' => array('type'=>'date','default'=> null),
+        'created_at' => array('type'=>'date', 'default'=> null)
     );
 
     public function Add(){

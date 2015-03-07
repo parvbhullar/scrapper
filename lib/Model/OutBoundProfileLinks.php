@@ -1,6 +1,7 @@
 <?php
 namespace Model;
 use Purekid\Mongodm\Model;
+use Services\ScrapperService;
 
 /**
  *
@@ -11,6 +12,7 @@ use Purekid\Mongodm\Model;
 final class OutBoundProfileLinks extends Model
 {
     public $excluded = array('_id', 'created_by', 'created_at');
+    protected static $useType = false;
     public function Initialize($user = "Unknown"){
         $this->status = 1; // 0 Inactive, 1 Active, 2 Deleted
         $this->created_at = time();
@@ -20,7 +22,7 @@ final class OutBoundProfileLinks extends Model
 
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(
-        'profile' => array('model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
+        'profile' => array('default'=> null, 'model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
         'name' => array('default'=>'','type'=>'string'),
         'source' => array('default'=>'','type'=>'string'),
         'summary' => array('default'=>'','type'=>'string'),

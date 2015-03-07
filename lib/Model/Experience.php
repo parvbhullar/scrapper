@@ -11,6 +11,7 @@ use Purekid\Mongodm\Model;
 final class Experience extends Model
 {
     public $excluded = array('_id', 'created_by', 'created_at');
+    protected static $useType = false;
     public function Initialize($user = "Unknown"){
         $this->status = 1; // 0 Inactive, 1 Active, 2 Deleted
         $this->created_at = time();
@@ -20,12 +21,12 @@ final class Experience extends Model
 
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(
-        'profile' => array('model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
+        'profile' => array('default'=> null, 'model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
         'role' => array('default'=>'','type'=>'string'),
         'companyName' => array('default'=>'','type'=>'string'),
         'industry' => array('default'=>'','type'=>'string'),
-        'fromDate' => array('type'=>'date'),
-        'toDate' => array('type'=>'date'),
+        'fromDate' => array('type'=>'date', 'default'=> null),
+        'toDate' => array('type'=>'date', 'default'=> null),
         'duration' => array('default'=>'','type'=>'string'),
         'current' => array('type'=>'boolean'),
         'location' => array('default'=>'','type'=>'string'),
@@ -34,7 +35,7 @@ final class Experience extends Model
 
         'status' => array('default'=>1, 'type'=>'integer'), #0 deactive, 1 active, 2 deleted
         'created_by' => array('default'=>'Unknown','type'=>'string'),
-        'created_at' => array('type'=>'date')
+        'created_at' => array('type'=>'date', 'default'=> null)
     );
     public function Add(){
         try
@@ -61,7 +62,7 @@ final class Experience extends Model
     public function IsExists()
     {
         try{
-            $data = Experience::one(array("profile" => $this->profile, "role" => $this->role, "companyName" => $this->companyName
+            $data = Experience::one(array("profile.id" => $this->profile->getId(), "role" => $this->role, "companyName" => $this->companyName
             , "fromDate" => $this->fromDate, "toDate" => $this->toDate));
             if (empty($data))
             {  return false;}

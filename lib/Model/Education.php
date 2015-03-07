@@ -11,6 +11,7 @@ use Purekid\Mongodm\Model;
 final class Education extends Model
 {
     public $excluded = array('_id', 'created_by', 'created_at');
+    protected static $useType = false;
     public function Initialize($user = "Unknown"){
         $this->status = 1; // 0 Inactive, 1 Active, 2 Deleted
         $this->created_at = time();
@@ -21,18 +22,18 @@ final class Education extends Model
     /** specific definition for attributes, not necessary! **/
     protected static $attrs = array(
 
-        'profile' => array('model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
+        'profile' => array('default'=> null, 'model'=> 'Model\\Profiles', 'type'=>'reference'), //If single reference den use embed
         'school' => array('default'=>'','type'=>'string'),
         'degree' => array('default'=>'','type'=>'string'),
         'program' => array('default'=>'','type'=>'string'),
-        'fromDate' => array('type'=>'date'),
-        'toDate' => array('type'=>'date'),
+        'fromDate' => array('type'=>'date', 'default'=> null),
+        'toDate' => array('type'=>'date', 'default'=> null),
         'year' => array('default'=>'','type'=>'string'),
         'gpa' => array('default'=>'','type'=>'string'),
         'seq' => array('default'=>'','type'=>'integer'),
         'status' => array('default'=>1, 'type'=>'integer'), #0 deactive, 1 active, 2 deleted
         'created_by' => array('default'=>'Unknown','type'=>'string'),
-        'created_at' => array('type'=>'date')
+        'created_at' => array('type'=>'date', 'default'=> null)
     );
 
     public function Add(){
@@ -60,7 +61,7 @@ final class Education extends Model
     public function IsExists()
     {
         try{
-            $data = Education::one(array("profile" => $this->profile, "school" => $this->school, "degree" => $this->degree
+            $data = Education::one(array("profile.id" => $this->profile->getId(), "school" => $this->school, "degree" => $this->degree
             , "year" => $this->year, "program" => $this->program));
             if (empty($data))
             {  return false;}
