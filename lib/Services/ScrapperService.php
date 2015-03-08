@@ -416,7 +416,7 @@ final class ScrapperService
     public function cleanText($val){
         if($val && is_string($val)){
             //Check for xml chars
-            $val = mb_convert_encoding($val, "UTF-8", "HTML-ENTITIES");// preg_replace_callback("/(&[#0-9a-z]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $val);
+//            $val = mb_convert_encoding($val, "UTF-8", "HTML-ENTITIES");// preg_replace_callback("/(&[#0-9a-z]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $val);
 //            $val = str_replace("-","", $val);
 //            $val = str_replace(",","", $val);
             return $val;
@@ -489,13 +489,38 @@ final class ScrapperService
         $duration = $end_time - $start_time;
         return $data;// array('time' => $duration, 'total' => count($data), 'data' => $data);
     }
+
+    function getGenderNew($name) {
+        $namePart = explode(" ", $name);
+        $firstName = $namePart[0];
+        $gender = new Gender;
+        $country = Gender::US;
+
+        $result = $gender->get($firstName, $country);
+
+        switch($result) {
+            case Gender::IS_FEMALE:
+            case Gender::IS_MOSTLY_FEMALE:
+                $g = 'Women'; break;
+            case Gender::IS_MALE:
+            case Gender::IS_MOSTLY_MALE:
+                $g = 'Men';break;
+            default:
+                $g = '';
+                break;
+        }
+        return $g;
+    }
+//echo getGender('markus'); //Output: male
     public function getGender($name) {
+        return null;
         $namePart = explode(" ", $name);
         $firstName = $namePart[0];
         //  $this->_print("Gender update from APIS : " . $firstName);
-        $purl = 'http://api.genderize.io?name='.$firstName;
+//        $purl = 'http://api.genderize.io?name='.$firstName;
+        //        $json = $this->curlURL($purl);
+        $json = file_get_contents('https://gender-api.com/get?name='.urlencode($firstName));
 
-        $json = $this->curlURL($purl);
 //        $json = $this->getResponse();
         $gender = json_decode($json, true);
         //   $this->_print("Name :".$name .": Gender :" . (isset($gender["gender"]) ? $gender["gender"] : "NA"));

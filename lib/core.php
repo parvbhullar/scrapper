@@ -11,7 +11,7 @@ class core {
     public function init(){
         \Purekid\Mongodm\MongoDB::setConfigBlock('default', array(
             'connection' => array(
-                'hostnames' => 'localhost',
+                'hostnames' => 'localhost', #104.236.112.37
                 'database'  => 'scrapper',
 //                            'username'  => 'root',
 //                            'password'  => '',
