@@ -6,11 +6,11 @@
  * Time: 3:53 PM
  */
 require dirname(__DIR__)."/vendor/autoload.php";
-
+//require ROOT."/vendor/gabordemooij/redbean/RedBean/redbean.inc.php";
 class core {
     public function init(){
         define("ROOT", dirname(__DIR__));
-        require ROOT."/vendor/gabordemooij/redbean/RedBean/redbean.inc.php";
+        date_default_timezone_set('America/Los_Angeles');
 
         \Purekid\Mongodm\MongoDB::setConfigBlock('default', array(
             'connection' => array(
