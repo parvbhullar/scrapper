@@ -43,10 +43,25 @@ class console {
                     echo "php lib/console.php scrap '<jsonFile>' '<htmlDir>' '<batchLimit>' \n";
                 }
                 break;
+            case "mysql":
+                $rows = \R::getAll("select * from cf_scrapped_data");
+                if($rows){
+//                    $this->init();
+                    $scrpService = new \Services\ScrapperService();
+                    foreach ($rows as $row)
+                    $scrpService->sqlToMongo($row);
+                } else {
+                    echo "Record not found.\n";
+                }
+                break;
+
             default:
 
                 echo "Available Commands\n";
                 echo "scrap\n";
+                echo "scrap_multithread\n" ;
+                echo "mysql\n";
+
                 break;
         }
     }

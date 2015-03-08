@@ -40,7 +40,7 @@ final class Experience extends Model
     public function Add(){
         try
         {
-            $res = $this->IsExists();
+            $res = false;//$this->IsExists();
             if($res != false)
             {
                 $obj = Experience::id($res);

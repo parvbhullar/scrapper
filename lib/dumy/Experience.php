@@ -1,8 +1,6 @@
 <?php
 namespace Hq\CrawlBundle\Document;
-use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
 
-use Gedmo\Mapping\Annotation as Gedmo;
 
 /**
  * @MongoDB\Document(collection="hq_experience", repositoryClass="Hq\CrawlBundle\Repository\ExperienceRepository")

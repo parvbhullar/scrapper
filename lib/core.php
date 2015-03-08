@@ -9,6 +9,9 @@ require dirname(__DIR__)."/vendor/autoload.php";
 
 class core {
     public function init(){
+        define("ROOT", dirname(__DIR__));
+        require ROOT."/vendor/gabordemooij/redbean/RedBean/redbean.inc.php";
+
         \Purekid\Mongodm\MongoDB::setConfigBlock('default', array(
             'connection' => array(
                 'hostnames' => 'localhost', #104.236.112.37
@@ -18,5 +21,12 @@ class core {
                 'options'  => array()
             )
         ));
+
+        $this->mysql('localhost','scrapper','root','');
+    }
+
+    public function mysql($host, $db, $user, $password){
+        \R::setup('mysql:host='.$host.';dbname='.$db, $user, $password);
+
     }
 }

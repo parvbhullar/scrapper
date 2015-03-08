@@ -1,9 +1,6 @@
 <?php
 namespace Hq\CrawlBundle\Document;
 
-use Doctrine\ODM\MongoDB\Mapping\Annotations as MongoDB;
-
-use Gedmo\Mapping\Annotation as Gedmo;
 
 
 
@@ -102,8 +99,8 @@ class Profiles
 
     public function __construct()
     {
-        $this->experience = new \Doctrine\Common\Collections\ArrayCollection();
-        $this->education = new \Doctrine\Common\Collections\ArrayCollection();
+//        $this->experience = new \Doctrine\Common\Collections\ArrayCollection();
+//        $this->education = new \Doctrine\Common\Collections\ArrayCollection();
     }
     
     /**
@@ -166,7 +163,7 @@ class Profiles
      *
      * @param Hq\CrawlBundle\Document\Experience $experience
      */
-    public function addExperience(\Hq\CrawlBundle\Document\Experience $experience)
+    public function addExperience(Experience $experience)
     {
         $this->experience[] = $experience;
     }
@@ -176,7 +173,7 @@ class Profiles
      *
      * @param Hq\CrawlBundle\Document\Experience $experience
      */
-    public function removeExperience(\Hq\CrawlBundle\Document\Experience $experience)
+    public function removeExperience(Experience $experience)
     {
         $this->experience->removeElement($experience);
     }
@@ -196,7 +193,7 @@ class Profiles
      *
      * @param Hq\CrawlBundle\Document\Education $education
      */
-    public function addEducation(\Hq\CrawlBundle\Document\Education $education)
+    public function addEducation(Education $education)
     {
         $this->education[] = $education;
     }
@@ -206,7 +203,7 @@ class Profiles
      *
      * @param Hq\CrawlBundle\Document\Education $education
      */
-    public function removeEducation(\Hq\CrawlBundle\Document\Education $education)
+    public function removeEducation(Education $education)
     {
         $this->education->removeElement($education);
     }
@@ -426,7 +423,7 @@ class Profiles
      *
      * @param Hq\CrawlBundle\Document\OutBoundProfileLinks $outBoundProfilesLink
      */
-    public function addOutBoundProfilesLink(\Hq\CrawlBundle\Document\OutBoundProfileLinks $outBoundProfilesLink)
+    public function addOutBoundProfilesLink(OutBoundProfileLinks $outBoundProfilesLink)
     {
         $this->outBoundProfilesLinks[] = $outBoundProfilesLink;
     }
@@ -436,7 +433,7 @@ class Profiles
      *
      * @param Hq\CrawlBundle\Document\OutBoundProfileLinks $outBoundProfilesLink
      */
-    public function removeOutBoundProfilesLink(\Hq\CrawlBundle\Document\OutBoundProfileLinks $outBoundProfilesLink)
+    public function removeOutBoundProfilesLink(OutBoundProfileLinks $outBoundProfilesLink)
     {
         $this->outBoundProfilesLinks->removeElement($outBoundProfilesLink);
     }
@@ -459,7 +456,7 @@ class Profiles
      * @param Hq\CrawlBundle\Document\SHMetadata $shMetadata
      * @return self
      */
-    public function setShMetadata(\Hq\CrawlBundle\Document\SHMetadata $shMetadata)
+    public function setShMetadata(SHMetadata $shMetadata)
     {
         $this->shMetadata = $shMetadata;
         return $this;
@@ -504,7 +501,7 @@ class Profiles
      * @param Hq\CrawlBundle\Document\ProfileStore $profileStore
      * @return self
      */
-    public function setProfileStore(\Hq\CrawlBundle\Document\ProfileStore $profileStore)
+    public function setProfileStore(Array $profileStore)
     {
         $this->profileStore = $profileStore;
         return $this;
