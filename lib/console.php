@@ -27,7 +27,7 @@ class console {
                 if($jsonFile && $dir){
 //                    $this->init();
                     $scrpService = new \Services\ScrapperService();
-                    $scrpService->metaToJson($jsonFile, $dir, $batch);
+                    $scrpService->metaToJson($jsonFile, $dir, 0, $batch);
                 } else {
                     echo "Command is\n";
                     echo "php lib/console.php scrap '<jsonFile>' '<htmlDir>' '<batchLimit>' \n";
@@ -97,4 +97,8 @@ class console {
 }
 //php lib/console.php scrap "H:\IINCORE\COLLEGEFEED\scrap-hero-data\li.json" "H:\IINCORE\COLLEGEFEED\scrap-hero-data\htmls" 50
 //php lib/console.php scrap_multithread "H:\IINCORE\COLLEGEFEED\scrap-hero-data\li.json" "H:\IINCORE\COLLEGEFEED\scrap-hero-data\htmls" 5 50
+
+//php lib/console.php scrap "/root/phq/sh/json_feb_17_99k.json" "/root/phq/sh/deb17/" 20
+//php lib/console.php scrap_multithread "/root/phq/sh/json_feb_17_99k.json" "/root/phq/sh/deb17/" 5 20
+
 $app = new Console($argv);
