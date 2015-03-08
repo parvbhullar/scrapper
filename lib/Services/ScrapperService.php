@@ -131,7 +131,7 @@ final class ScrapperService
                 //   $ex->id = new \MongoId();
                 $ex->companyName = $expArr['Company'];
                 $ex->role = $expArr['Title'];
-                $ex->industry = $profile->getIndustry();
+                $ex->industry = $profile->industry;
                 $ex->location = $expArr['Location'];
                 $ex->description = $expArr['Description'];
                 $ex->fromDate = $this->getValidDate($expArr['Start Date']);
@@ -147,6 +147,7 @@ final class ScrapperService
 
                 $obl = false; //$this->getRepo('CrawlBundle:Experience')->checkExperience($profile, $ex);
                 $ex->profile = $profile;
+                //print_r($ex);
                 $ex->Add();
                 $oList[] = $ex;
                 $i++;
@@ -354,7 +355,7 @@ final class ScrapperService
                 $ex->id(new \MongoId());
                 $ex->companyName = $this->getText($expArr['company']);
                 $ex->role = $this->getText($expArr['title']);
-                $ex->industry = $profile->getIndustry();
+                $ex->industry = $profile->industry;
                 $ex->location = $this->getText($expArr['locality']);
                 $ex->description = "";
                 $ex->fromDate = $this->getValidDate($this->getText($expArr['start_date']));
