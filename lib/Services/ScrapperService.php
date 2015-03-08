@@ -1,5 +1,6 @@
 <?php
 namespace Services;
+
 use Model\OutBoundProfileLinks;
 use Model\Education;
 use Model\Experience;
@@ -28,15 +29,17 @@ final class ScrapperService
     const CS_CRAWLED = 1;
     const CS_PARSED = 2;
     const CS_ES_UPDATED = 3;
+
     public function __construct($jsonPath = "", $htmlDir = "")
     {
         $this->jsonFilePath = $jsonPath;
         $this->htmlDir = $htmlDir;
     }
 
-    public function readJson($jsonFilePath){
+    public function readJson($jsonFilePath)
+    {
         $file = new \SplFileObject($jsonFilePath);
-        $i=0;
+        $i = 0;
         $list = [];
         while (!$file->eof()) {
             $jsonRow = $file->fgets();
@@ -47,14 +50,15 @@ final class ScrapperService
         return $list;
     }
 
-    public function process($list){
-        foreach($list as $l){
-            if(isset($l['hash']) && isset($l['url'])){
-                $filePath = $this->htmlDir.DIRECTORY_SEPARATOR.$l['hash'].".html";
+    public function process($list)
+    {
+        foreach ($list as $l) {
+            if (isset($l['hash']) && isset($l['url'])) {
+                $filePath = $this->htmlDir . DIRECTORY_SEPARATOR . $l['hash'] . ".html";
 //                echo "Scraping url - $t";//.$l['url']. " file path - $filePath\n";
                 $json = $this->scrapAll($l['url'], $filePath);
-                if($json){
-                    $d = dirname(dirname(__DIR__))."/file.json";
+                if ($json) {
+                    $d = dirname(dirname(__DIR__)) . "/file.json";
 //                   file_put_contents($d, json_encode($json));
                     //create profile
                     $this->createProfiles($l['url'], $l, $json);
@@ -63,32 +67,37 @@ final class ScrapperService
             }
         }
     }
+
     public function sqlToMongo($sqldata)
     {
         {
             $profile = new Profiles();
             $profile->id(new \MongoId());
             $profile->name = $sqldata['name'];
-          //  $profile->title = $sqldata['title'];
+            $profile->source= $sqldata['source'];
+            //  $profile->title = $sqldata['title'];
             $profile->gender = $sqldata['Gender'];
-            $profile->profileStore = null;// $this->getDataByKey($data, $profile,'profileStore');
+            $profile->profileStore = null; // $this->getDataByKey($data, $profile,'profileStore');
 
 
             $profile->industry = $sqldata['Industry'];
             $profile->locality = $sqldata['Location'];
-            $profile->sourceService = $sqldata['source'];
-            $s =  self::CS_PARSED; //Set status Parsed
+            $profile->sourceService = "";
+            $s = self::CS_PARSED; //Set status Parsed
             $profile->status = $s;
-
-          // $profile =  $this->parseDBEducation($this->textToObj($sqldata['Education']), $profile);
+        //    print_r(($sqldata));
+//            print_r(json_decode($sqldata['Education']));
+//            print_r(json_decode($sqldata['Experience']));
+       //     exit;
+            $profile =  $this->parseDBEducation($this->textToObj($sqldata['Education']), $profile);
             $data = $this->textToObj($sqldata['Experience']);
-            $profile =  $this->parseDBExperience($data, $profile);
-             $date =  new \DateTime();
+            $profile = $this->parseDBExperience($data, $profile);
+            $date = new \DateTime();
             $date->setISODate(1900, 1, 1);
-            $profile->resumeLastUpdated =$date;// $this->getValidDate($this->getText($profile['resumeLastUpdated']));
-            $profile->updatedInES = false;// $this->getDataByKey($data, 'updatedInES', true);
+            $profile->resumeLastUpdated = $date; // $this->getValidDate($this->getText($profile['resumeLastUpdated']));
+            $profile->updatedInES = false; // $this->getDataByKey($data, 'updatedInES', true);
 
-            $s =  self::CS_PARSED; //Set status Parsed
+            $s = self::CS_PARSED; //Set status Parsed
             $profile->status = $s;
             $id = $profile->Add();
 
@@ -96,10 +105,11 @@ final class ScrapperService
 
         return $profile;
     }
+
     public function textToObj($text)
     {
         $list = [];
-        $list[] = json_decode($text,true);
+        $list[] = json_decode($text, true);
         $data = array();
         foreach ($list as $l) {
             foreach ($l as $k => $v) {
@@ -108,34 +118,37 @@ final class ScrapperService
         }
         return $data;
     }
+
     public function parseDBExperience($list, Profiles $profile)
     {
-        if($list){
+        if ($list) {
             $i = 1;
             $oList = [];
-            foreach($list as $expArr){
+
+            foreach ($list as $expArr) {
                 $ex = new Experience();
-               $ex->id(new \MongoId());
+                $ex->id(new \MongoId());
+                //   $ex->id = new \MongoId();
                 $ex->companyName = $expArr['Company'];
-               $ex->role=$expArr['Title'];
-                $ex->industry=$profile->getIndustry();
-                $ex->location=$expArr['Location'];
+                $ex->role = $expArr['Title'];
+                $ex->industry = $profile->getIndustry();
+                $ex->location = $expArr['Location'];
                 $ex->description = $expArr['Description'];
-                $ex->fromDate=$this->getValidDate($expArr['Start Date']);
+                $ex->fromDate = $this->getValidDate($expArr['Start Date']);
                 $endDate = $expArr['End Date'];
-                $ex->toDate=$this->getValidDate($endDate);
+                $ex->toDate = $this->getValidDate($endDate);
                 $duration = $this->dateDuration($expArr['Start Date'], $expArr['End Date']);
                 $current = $endDate ? false : true;
-                $ex->current=$current;
-                $ex->createdAt=new \DateTime();
-                $ex->updatedAt=new \DateTime();
+                $ex->current = $current;
+                $ex->createdAt = new \DateTime();
+                $ex->updatedAt = new \DateTime();
                 $ex->seq = $i;
                 $ex->duration = $duration;
 
-                $obl = false;//$this->getRepo('CrawlBundle:Experience')->checkExperience($profile, $ex);
+                $obl = false; //$this->getRepo('CrawlBundle:Experience')->checkExperience($profile, $ex);
                 $ex->profile = $profile;
                 $ex->Add();
-               $oList[] = $ex;
+                $oList[] = $ex;
                 $i++;
                 $s = 0;
                 $ex->status = $s;
@@ -149,23 +162,27 @@ final class ScrapperService
         }
         return $profile;
     }
+
     public function parseDBEducation($list, $profile)
     {
-        if($list){
+        if ($list) {
             $i = 1;
 //            $profile = $this->deleteEducation($profile, $profile->getEducation());
             $oList = [];
-            foreach($list as $edu){
+//[Details] =>
+//[Duration] => 1983 - 1988
+//[AcadsRec] => 1
+            foreach ($list as $edu) {
                 $e = new Education();
                 $e->id(new \MongoId());
-                $e->school=$edu["school"];
-                $e->degree=$edu["degree"];
-                $e->program=$edu["major"];
-                $e->gpa=$edu["grade"];
-                $e->fromDate=$this->getValidDate($edu['start_date']);
-                $endDate = $edu['end_date'];
-                $e->toDate=$this->getValidDate($endDate);
-                $e->year=$this->dateStringClean($edu['end_date']);
+                $e->school = $edu["School"];
+                $e->degree = $edu["Name"];
+                $e->program = $edu["Program"];
+                $e->gpa = $edu["GPA"];
+                // $e->fromDate=$this->getValidDate($edu['start_date']);
+                $endDate = $edu['Year'];
+                $e->toDate = $this->getValidDate($endDate);
+                $e->year = $this->dateStringClean($edu['Year']);
                 $e->createdAt = new \DateTime();
                 $e->updatedAt = new \DateTime();
                 $e->seq = $i;
@@ -178,12 +195,14 @@ final class ScrapperService
                 $oList[] = $e;
                 $i++;
             }
-            $profile->education = Collection::make($oList);;
+            $profile->education = Collection::make($oList);
             //  $this->_print(count($list)." educations added");
         }
         return $profile;
     }
-    public function metaToJson($jsonPath, $htmlDir, $batch = 10, $limit = 20){
+
+    public function metaToJson($jsonPath, $htmlDir, $batch = 10, $limit = 20)
+    {
         $this->jsonFilePath = $jsonPath;
         $this->htmlDir = $htmlDir;
 
@@ -191,13 +210,13 @@ final class ScrapperService
         $jsonList = [];
         $i = $t = 1;
         $start_time = time();
-        foreach($list as $l){
-            if(isset($l['hash']) && isset($l['url'])){
-                $filePath = $htmlDir.DIRECTORY_SEPARATOR.$l['hash'].".html";
-                echo "Scraping url - $t";//.$l['url']. " file path - $filePath\n";
+        foreach ($list as $l) {
+            if (isset($l['hash']) && isset($l['url'])) {
+                $filePath = $htmlDir . DIRECTORY_SEPARATOR . $l['hash'] . ".html";
+                echo "Scraping url - $t"; //.$l['url']. " file path - $filePath\n";
                 $json = $this->scrapAll($l['url'], $filePath);
-                if($json){
-                    $d = dirname(dirname(__DIR__))."/file.json";
+                if ($json) {
+                    $d = dirname(dirname(__DIR__)) . "/file.json";
 //                   file_put_contents($d, json_encode($json));
                     //create profile
                     $this->createProfiles($l['url'], $l, $json);
@@ -206,21 +225,22 @@ final class ScrapperService
                 }
                 $t++;
             }
-            if($t >= $limit){
+            if ($t >= $limit) {
                 break;
             }
         }
         $end_time = time();
         $duration = $end_time - $start_time;
-        $dv = new \DateInterval('PT'.$duration.'S');
-        echo("Whole Profile process took"." - ". $dv->m . " minutes ". $dv->s." seconds \n");
+        $dv = new \DateInterval('PT' . $duration . 'S');
+        echo("Whole Profile process took" . " - " . $dv->m . " minutes " . $dv->s . " seconds \n");
 
     }
 
-    public function createProfiles($url, $sh, $scrappedJson){
+    public function createProfiles($url, $sh, $scrappedJson)
+    {
         $profile = $this->parseProfile($scrappedJson[$url], $sh);
         //print_r($scrappedJson[$url]);exit;
-        $d = dirname(dirname(__DIR__))."/profile.json";
+        $d = dirname(dirname(__DIR__)) . "/profile.json";
 
     }
 
@@ -228,48 +248,48 @@ final class ScrapperService
     {
         $url = $this->getArrayValue($shJson, 'url');
         $profile = Profiles::one(array("source" => trim($url)));
-        if(!$profile){
+        if (!$profile) {
             $profile = new Profiles();
             $profile->id(new \MongoId());
             $id = $profile->Add();
             $profile = Profiles::id($id);
             $profile->source = $url;
         } else {
-            if($profile->status == self::CS_PARSED){
+            if ($profile->status == self::CS_PARSED) {
                 echo "Profile already parsed - $url\n";
                 return false;
             }
         }
 //        $this->currentProfile = $profile;
-        $name = $this->getArrayValue($shJson, 'name');// $this->getDataByKey($data, 'name', true);
+        $name = $this->getArrayValue($shJson, 'name'); // $this->getDataByKey($data, 'name', true);
 
-        if($name){
-            $profile->name =$name;
+        if ($name) {
+            $profile->name = $name;
             $profile->title = $this->getDataByKey($data, 'title', true);
             $profile->gender = $this->getGender($name);
-            $profile->profileStore = null;// $this->getDataByKey($data, $profile,'profileStore');
+            $profile->profileStore = null; // $this->getDataByKey($data, $profile,'profileStore');
 
 
             $profile->industry = $this->getDataByKey($data, 'industry', true);
             $profile->locality = $this->getDataByKey($data, 'locality', true);
-            $profile->sourceService = self::SOURCE_SERVICE_LINKED_IN;// $this->getDataByKey($data, 'sourceService', true);
-            $s =  self::CS_PARSED; //Set status Parsed
+            $profile->sourceService = self::SOURCE_SERVICE_LINKED_IN; // $this->getDataByKey($data, 'sourceService', true);
+            $s = self::CS_PARSED; //Set status Parsed
             $profile->status = $s;
 //            $profile->Add();
 //            echo "Profile saved\n";
-            $profile =  $this->parseOutgoingLinks($data, $profile);
+            $profile = $this->parseOutgoingLinks($data, $profile);
 //            print_r($profile->outBoundProfilesLinks);
-            $profile =  $this->parseExperience($data, $profile);
+            $profile = $this->parseExperience($data, $profile);
 //            print_r($profile->experience);
-            $profile =  $this->parseEducation($data, $profile);
+            $profile = $this->parseEducation($data, $profile);
             $profile = $this->parseSHMetadata($shJson, $profile);
 
-            $date =  new \DateTime();
+            $date = new \DateTime();
             $date->setISODate(1900, 1, 1);
-            $profile->resumeLastUpdated =$date;// $this->getValidDate($this->getText($profile['resumeLastUpdated']));
-            $profile->updatedInES = false;// $this->getDataByKey($data, 'updatedInES', true);
+            $profile->resumeLastUpdated = $date; // $this->getValidDate($this->getText($profile['resumeLastUpdated']));
+            $profile->updatedInES = false; // $this->getDataByKey($data, 'updatedInES', true);
 
-            $s =  self::CS_PARSED; //Set status Parsed
+            $s = self::CS_PARSED; //Set status Parsed
             $profile->status = $s;
             $profile->Add();
 //            exit;
@@ -283,25 +303,24 @@ final class ScrapperService
     }
 
 
-
     public function parseEducation($data, $profile)
     {
         $list = $this->getDataByKey($data, 'education');
-        if($list){
+        if ($list) {
             $i = 1;
 //            $profile = $this->deleteEducation($profile, $profile->getEducation());
             $oList = [];
-            foreach($list as $edu){
+            foreach ($list as $edu) {
                 $e = new Education();
                 $e->id(new \MongoId());
-                $e->school=$this->getText($edu["school"]);
-                $e->degree=$this->getText($edu["degree"]);
-                $e->program=$this->getText($edu["major"]);
-                $e->gpa=$this->getText($edu["grade"]);
-                $e->fromDate=$this->getValidDate($this->getText($edu['start_date']));
+                $e->school = $this->getText($edu["school"]);
+                $e->degree = $this->getText($edu["degree"]);
+                $e->program = $this->getText($edu["major"]);
+                $e->gpa = $this->getText($edu["grade"]);
+                $e->fromDate = $this->getValidDate($this->getText($edu['start_date']));
                 $endDate = $this->getText($edu['end_date']);
-                $e->toDate=$this->getValidDate($endDate);
-                $e->year=$this->dateStringClean($this->getText($edu['end_date']));
+                $e->toDate = $this->getValidDate($endDate);
+                $e->year = $this->dateStringClean($this->getText($edu['end_date']));
                 $e->createdAt = new \DateTime();
                 $e->updatedAt = new \DateTime();
                 $e->seq = $i;
@@ -323,33 +342,33 @@ final class ScrapperService
     public function parseExperience($data, Profiles $profile)
     {
         $list = $this->getDataByKey($data, 'experience');
-        if($list){
+        if ($list) {
 //            print_r($list);
 //            $list = $this->sortDate($list);
 //            print_r($list);
 //            $profile = $this->deleteExperience($profile, $profile->getExperience());
             $i = 1;
             $oList = [];
-            foreach($list as $expArr){
+            foreach ($list as $expArr) {
                 $ex = new Experience();
                 $ex->id(new \MongoId());
                 $ex->companyName = $this->getText($expArr['company']);
-                $ex->role=$this->getText($expArr['title']);
-                $ex->industry=$profile->getIndustry();
-                $ex->location=$this->getText($expArr['locality']);
+                $ex->role = $this->getText($expArr['title']);
+                $ex->industry = $profile->getIndustry();
+                $ex->location = $this->getText($expArr['locality']);
                 $ex->description = "";
-                $ex->fromDate=$this->getValidDate($this->getText($expArr['start_date']));
+                $ex->fromDate = $this->getValidDate($this->getText($expArr['start_date']));
                 $endDate = $this->getText($expArr['end_date']);
-                $ex->toDate=$this->getValidDate($endDate);
+                $ex->toDate = $this->getValidDate($endDate);
                 $duration = $this->dateDuration($this->getText($expArr['start_date']), $this->getText($expArr['end_date']));
                 $current = $endDate ? false : true;
-                $ex->current=$current;
-                $ex->createdAt=new \DateTime();
-                $ex->updatedAt=new \DateTime();
+                $ex->current = $current;
+                $ex->createdAt = new \DateTime();
+                $ex->updatedAt = new \DateTime();
                 $ex->seq = $i;
                 $ex->duration = $duration;
 
-                $obl = false;//$this->getRepo('CrawlBundle:Experience')->checkExperience($profile, $ex);
+                $obl = false; //$this->getRepo('CrawlBundle:Experience')->checkExperience($profile, $ex);
                 $ex->profile = $profile;
                 $ex->Add();
                 $oList[] = $ex;
@@ -372,13 +391,13 @@ final class ScrapperService
     {
         $shmd = new SHMetadata();
         $shmd->id(new \MongoId());
-        $shmd->hash=$this->getArrayValue($shmdata, "hash");
+        $shmd->hash = $this->getArrayValue($shmdata, "hash");
         $shmd->zipResumesS3path = $this->getArrayValue("zipResumesS3path", "");
         $shmd->zipMetadataS3path = $this->getArrayValue($shmdata, "zipMetadataS3path");
         $shmd->downloadedResumesPath = $this->htmlDir;
         $shmd->downloadedMetadataPath = $this->jsonFilePath;
         $shmd->currentJob = $this->getArrayValue($shmdata, "currentJob");
-        $shmd->previousJobs =$this->getArrayValue($shmdata, "previousJobs");
+        $shmd->previousJobs = $this->getArrayValue($shmdata, "previousJobs");
 
         $shmd->profile = $profile;
 
@@ -394,23 +413,25 @@ final class ScrapperService
 
     public function dateDuration($start, $to)
     {
-        if(isset($start) && isset($end)) {
+        if (isset($start) && isset($end)) {
             $start = $this->formatDate($start);
             $end = $this->formatDate($to);
             return $start->diff($end);
         }
         return null;
     }
-    public function formatDate($date) {
-        if(isset($date)) {
+
+    public function formatDate($date)
+    {
+        if (isset($date)) {
             $date = new \DateTime($date);
             return $date;
-        }
-        else
+        } else
             return null;
     }
 
-    public function getCurrent($exp){
+    public function getCurrent($exp)
+    {
 
     }
 
@@ -418,23 +439,23 @@ final class ScrapperService
     {
         $list = $this->getDataByKey($data, 'side_profiles');
 //        $profile->outBoundProfilesLinks = null;
-        if($list){
+        if ($list) {
 //            $profile = $this->getProfile();
 //            $this->deleteOutboundLinks($profile->getOutBoundProfilesLinks());
             $oList = [];
 //            print_r($profile);
-            foreach($list as $sProfile){
+            foreach ($list as $sProfile) {
                 $url = $this->getHref($sProfile['name']);
-                $obl = false;//$this->getRepo('CrawlBundle:Profiles')->findOutboundLink($url);
+                $obl = false; //$this->getRepo('CrawlBundle:Profiles')->findOutboundLink($url);
 //                $this->_print($url);
-                if(!$obl){
+                if (!$obl) {
                     $obl = new OutBoundProfileLinks();
                     $obl->id(new \MongoId(null));
                     $obl->source = $url;
                     $obl->name = $this->getText($sProfile['name']);
                     $obl->summary = $this->getText($sProfile['description']);
                     $s = self::CS_LINK_STORED;
-                    $obl->status= $s;
+                    $obl->status = $s;
                     $obl->profile = $profile;
 //                    echo "saving first $url\n";
                     $obl->Add();
@@ -447,30 +468,32 @@ final class ScrapperService
         return $profile;
     }
 
-    public function dateStringClean($dateStr){
-        if(is_string($dateStr)){
-            $dateStr = str_replace("-","", $dateStr);
-            return str_replace("â","", $dateStr);
+    public function dateStringClean($dateStr)
+    {
+        if (is_string($dateStr)) {
+            $dateStr = str_replace("-", "", $dateStr);
+            return str_replace("â", "", $dateStr);
         }
         return $dateStr;
     }
 
-    public function getValidDate($dateStr){
-        if($dateStr){
+    public function getValidDate($dateStr)
+    {
+        if ($dateStr) {
 //            echo("Date - str $dateStr\n");
             $dateStr = $this->dateStringClean($dateStr);
             $dv = false;
-            if(is_string($dateStr)){
+            if (is_string($dateStr)) {
                 $dv = intval($dateStr);
             }
 
-            if($dv){
+            if ($dv) {
 //                echo("Date - dv true str $dateStr\n");
-                $date = $this->validateDate("Jan ".$dateStr);
+                $date = $this->validateDate("Jan " . $dateStr);
             } else
                 $date = $this->validateDate($dateStr);
 
-            if(!$date){
+            if (!$date) {
                 return null;
             }
 //            echo("Returning Date - dv true str ".$date->format("M Y")."\n");
@@ -480,8 +503,9 @@ final class ScrapperService
 
     }
 
-    private function validateDate($dateStr){
-        if(is_string($dateStr) === false){
+    private function validateDate($dateStr)
+    {
+        if (is_string($dateStr) === false) {
             return $dateStr;
         }
         if (($timestamp = strtotime($dateStr)) === false) {
@@ -493,18 +517,19 @@ final class ScrapperService
         }
     }
 
-    public function getDataByKey($data, $key, $singleValue = false){
+    public function getDataByKey($data, $key, $singleValue = false)
+    {
 
 //        $data = $this->getData();
 //        $data = $data[$this->getUrl()];
 
-        if(!isset($data[$key]) || count($data[$key]) == 0){
+        if (!isset($data[$key]) || count($data[$key]) == 0) {
             echo("Scrapped data does not contain $key. Kindly recheck scrap mapping or key\n");
             return false;
         }
 
-        if($singleValue){
-            foreach($data[$key] as $v){
+        if ($singleValue) {
+            foreach ($data[$key] as $v) {
 //                $this->_print(json_encode($v), true);
                 return $this->getText($v);
             }
@@ -513,30 +538,36 @@ final class ScrapperService
         return $data[$key];
     }
 
-    public function getText($value){
+    public function getText($value)
+    {
         return isset($value['text']) ? $this->cleanText($value['text']) : "";
     }
 
-    public function getHref($value){
+    public function getHref($value)
+    {
         return isset($value['href']) ? $value['href'] : "";
     }
-    public function getArrayValue($array, $key){
+
+    public function getArrayValue($array, $key)
+    {
         return isset($array[$key]) ? $this->cleanText($array[$key]) : "";
     }
 
-    public function strContains($val, $needle){
+    public function strContains($val, $needle)
+    {
         $val = preg_replace('/(\r\n\r\n)$/', '', $val);
         $needle = preg_replace('/(\r\n\r\n)$/', '', $needle);
-        if($needle && strpos(trim(strtolower($val)), trim(strtolower($needle))) !== false){
+        if ($needle && strpos(trim(strtolower($val)), trim(strtolower($needle))) !== false) {
             return true;
         }
         return false;
     }
 
-    public function cleanText($val){
-        if($val && is_string($val)){
+    public function cleanText($val)
+    {
+        if ($val && is_string($val)) {
             //Check for xml chars
-            $val = mb_convert_encoding($val, "UTF-8", "HTML-ENTITIES");// preg_replace_callback("/(&[#0-9a-z]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $val);
+            $val = mb_convert_encoding($val, "UTF-8", "HTML-ENTITIES"); // preg_replace_callback("/(&[#0-9a-z]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $val);
 //            $val = str_replace("-","", $val);
 //            $val = str_replace(",","", $val);
             return $val;
@@ -544,7 +575,8 @@ final class ScrapperService
         return $val;
     }
 
-    public function scrapAll($url, $path){
+    public function scrapAll($url, $path)
+    {
         $paths = array(
             array('name' => 'name', 'path' => array('span.full-name')),
             array('name' => 'title', 'path' => array('p.title')),
@@ -575,7 +607,7 @@ final class ScrapperService
         );
 
         $content = $this->getFileContents($path);
-        if($content){
+        if ($content) {
             return $this->scrap($url, $paths, false, $content);
         } else {
             echo("Content not found\n");
@@ -583,8 +615,9 @@ final class ScrapperService
         return false;
     }
 
-    public function getFileContents($path) {
-        if(isset($path) && $path != '/.html') {
+    public function getFileContents($path)
+    {
+        if (isset($path) && $path != '/.html') {
             $bytes = @file_get_contents($path);
             return $bytes;
         }
@@ -592,14 +625,15 @@ final class ScrapperService
     }
 
 
-    public function scrap($url, $cssPaths, $objectRoot = false, $content = null, $depth = 0){
+    public function scrap($url, $cssPaths, $objectRoot = false, $content = null, $depth = 0)
+    {
         $start_time = time();
         $simple_crawler = new SimpleScrapper($url, $cssPaths, $depth);
-        $urls = array();//$this->getStopUrls();
+        $urls = array(); //$this->getStopUrls();
         $simple_crawler->setStopUrls($urls);
 //        $simple_crawler->setObjectsRoot($objectRoot);
         $simple_crawler->setExtractInfo();
-        if($content){
+        if ($content) {
             $simple_crawler->traverse($url, $content);
         } else {
             $simple_crawler->traverse();
@@ -607,24 +641,25 @@ final class ScrapperService
         $data = $simple_crawler->getLinksInfo();
         $end_time = time();
         $duration = $end_time - $start_time;
-        return $data;// array('time' => $duration, 'total' => count($data), 'data' => $data);
+        return $data; // array('time' => $duration, 'total' => count($data), 'data' => $data);
     }
-    public function getGender($name) {
+
+    public function getGender($name)
+    {
         $namePart = explode(" ", $name);
         $firstName = $namePart[0];
         //  $this->_print("Gender update from APIS : " . $firstName);
-        $purl = 'http://api.genderize.io?name='.$firstName;
+        $purl = 'http://api.genderize.io?name=' . $firstName;
 
         $json = $this->curlURL($purl);
 //        $json = $this->getResponse();
         $gender = json_decode($json, true);
         //   $this->_print("Name :".$name .": Gender :" . (isset($gender["gender"]) ? $gender["gender"] : "NA"));
 
-        if($gender && isset($gender["gender"])){
-            if($gender["gender"] == 'male') {
+        if ($gender && isset($gender["gender"])) {
+            if ($gender["gender"] == 'male') {
                 $g = 'Men';
-            }
-            else if($gender["gender"] == 'female') {
+            } else if ($gender["gender"] == 'female') {
                 $g = 'Women';
             } else {
                 $g = '';
@@ -635,7 +670,9 @@ final class ScrapperService
 
         return $g;
     }
-    public  function curlURL($url){
+
+    public function curlURL($url)
+    {
 //        $response = $this->post($url, array(
 //            'CURLOPT_HEADER' => false,
 //            'CURLOPT_RETURNTRANSFER' => true,
@@ -655,6 +692,6 @@ final class ScrapperService
         //$this->_print("httpcode: ". $httpCode['http_code'] .":url : $url " );
 
 
-        return  $jsonstring;
+        return $jsonstring;
     }
 }

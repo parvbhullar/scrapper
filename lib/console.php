@@ -17,6 +17,10 @@ class console {
         switch($command)
         {
             case "scrap":
+//                $jsonFile = "G:\\Oranikle\\Bigdata\\li.json";
+//                $dir = "G:\\Oranikle\\Scrapper\\files";;
+//                $batch = 50;
+
                 $jsonFile = isset($argv[2])? $argv[2] : "";
                 $dir = isset($argv[3])? $argv[3] : "";
                 $batch = isset($argv[4])? $argv[4] : 50;
@@ -54,6 +58,17 @@ class console {
                     echo "Record not found.\n";
                 }
                 break;
+            case "mysqlone":
+                $row = \R::getRow("select * from cf_scrapped_data");
+                if($row){
+//                    $this->init();
+                    $scrpService = new \Services\ScrapperService();
+                   // foreach ($rows as $row)
+                        $scrpService->sqlToMongo($row);
+                } else {
+                    echo "Record not found.\n";
+                }
+                break;
 
             default:
 
@@ -61,6 +76,7 @@ class console {
                 echo "scrap\n";
                 echo "scrap_multithread\n" ;
                 echo "mysql\n";
+                echo "mysqlone\n";
 
                 break;
         }

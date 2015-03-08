@@ -39,7 +39,7 @@ final class Education extends Model
     public function Add(){
         try
         {
-            $res = $this->IsExists();
+            $res = false;//$this->IsExists();
             if($res != false)
             {
                 $obj = Education::id($res);
