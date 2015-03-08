@@ -11,6 +11,8 @@
         "purekid/mongodm": "dev-master",
         "jenssegers/mongodb": "4.2.*@dev",
         "fabpot/goutte": "2.0.2",
+        "gabordemooij/redbean": "3.5.1",
         "unusorin/pthreads": "0.1.*@dev"
+
     }
 }

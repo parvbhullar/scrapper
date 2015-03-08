@@ -63,7 +63,126 @@ final class ScrapperService
             }
         }
     }
+    public function sqlToMongo($sqldata)
+    {
+        {
+            $profile = new Profiles();
+            $profile->id(new \MongoId());
+            $profile->name = $sqldata['name'];
+          //  $profile->title = $sqldata['title'];
+            $profile->gender = $sqldata['Gender'];
+            $profile->profileStore = null;// $this->getDataByKey($data, $profile,'profileStore');
 
+
+            $profile->industry = $sqldata['Industry'];
+            $profile->locality = $sqldata['Location'];
+            $profile->sourceService = $sqldata['source'];
+            $s =  self::CS_PARSED; //Set status Parsed
+            $profile->status = $s;
+
+          // $profile =  $this->parseDBEducation($this->textToObj($sqldata['Education']), $profile);
+            $data = $this->textToObj($sqldata['Experience']);
+            $profile =  $this->parseDBExperience($data, $profile);
+             $date =  new \DateTime();
+            $date->setISODate(1900, 1, 1);
+            $profile->resumeLastUpdated =$date;// $this->getValidDate($this->getText($profile['resumeLastUpdated']));
+            $profile->updatedInES = false;// $this->getDataByKey($data, 'updatedInES', true);
+
+            $s =  self::CS_PARSED; //Set status Parsed
+            $profile->status = $s;
+            $id = $profile->Add();
+
+        }
+
+        return $profile;
+    }
+    public function textToObj($text)
+    {
+        $list = [];
+        $list[] = json_decode($text,true);
+        $data = array();
+        foreach ($list as $l) {
+            foreach ($l as $k => $v) {
+                $data[$k] = $v;
+            }
+        }
+        return $data;
+    }
+    public function parseDBExperience($list, Profiles $profile)
+    {
+        if($list){
+            $i = 1;
+            $oList = [];
+            foreach($list as $expArr){
+                $ex = new Experience();
+               $ex->id(new \MongoId());
+                $ex->companyName = $expArr['Company'];
+               $ex->role=$expArr['Title'];
+                $ex->industry=$profile->getIndustry();
+                $ex->location=$expArr['Location'];
+                $ex->description = $expArr['Description'];
+                $ex->fromDate=$this->getValidDate($expArr['Start Date']);
+                $endDate = $expArr['End Date'];
+                $ex->toDate=$this->getValidDate($endDate);
+                $duration = $this->dateDuration($expArr['Start Date'], $expArr['End Date']);
+                $current = $endDate ? false : true;
+                $ex->current=$current;
+                $ex->createdAt=new \DateTime();
+                $ex->updatedAt=new \DateTime();
+                $ex->seq = $i;
+                $ex->duration = $duration;
+
+                $obl = false;//$this->getRepo('CrawlBundle:Experience')->checkExperience($profile, $ex);
+                $ex->profile = $profile;
+                $ex->Add();
+               $oList[] = $ex;
+                $i++;
+                $s = 0;
+                $ex->status = $s;
+            }
+
+            $profile->experience = Collection::make($oList);;
+            //Reset Seq
+            //$profile = $this->getProfile();
+            //  $this->_print(count($list)." experiences added");
+
+        }
+        return $profile;
+    }
+    public function parseDBEducation($list, $profile)
+    {
+        if($list){
+            $i = 1;
+//            $profile = $this->deleteEducation($profile, $profile->getEducation());
+            $oList = [];
+            foreach($list as $edu){
+                $e = new Education();
+                $e->id(new \MongoId());
+                $e->school=$edu["school"];
+                $e->degree=$edu["degree"];
+                $e->program=$edu["major"];
+                $e->gpa=$edu["grade"];
+                $e->fromDate=$this->getValidDate($edu['start_date']);
+                $endDate = $edu['end_date'];
+                $e->toDate=$this->getValidDate($endDate);
+                $e->year=$this->dateStringClean($edu['end_date']);
+                $e->createdAt = new \DateTime();
+                $e->updatedAt = new \DateTime();
+                $e->seq = $i;
+                $e->profile = $profile;
+                $s = 0;
+                $e->status = $s;
+                // $profile->addEducation($e);
+//                $this->addEducation($e);
+                $e->Add();
+                $oList[] = $e;
+                $i++;
+            }
+            $profile->education = Collection::make($oList);;
+            //  $this->_print(count($list)." educations added");
+        }
+        return $profile;
+    }
     public function metaToJson($jsonPath, $htmlDir, $batch = 10, $limit = 20){
         $this->jsonFilePath = $jsonPath;
         $this->htmlDir = $htmlDir;
@@ -100,6 +219,7 @@ final class ScrapperService
 
     public function createProfiles($url, $sh, $scrappedJson){
         $profile = $this->parseProfile($scrappedJson[$url], $sh);
+        //print_r($scrappedJson[$url]);exit;
         $d = dirname(dirname(__DIR__))."/profile.json";
 
     }
@@ -173,7 +293,7 @@ final class ScrapperService
             $oList = [];
             foreach($list as $edu){
                 $e = new Education();
-                $e->id = new \MongoId(null);
+                $e->id(new \MongoId());
                 $e->school=$this->getText($edu["school"]);
                 $e->degree=$this->getText($edu["degree"]);
                 $e->program=$this->getText($edu["major"]);
@@ -212,7 +332,7 @@ final class ScrapperService
             $oList = [];
             foreach($list as $expArr){
                 $ex = new Experience();
-                $ex->id(new \MongoId(null));
+                $ex->id(new \MongoId());
                 $ex->companyName = $this->getText($expArr['company']);
                 $ex->role=$this->getText($expArr['title']);
                 $ex->industry=$profile->getIndustry();
@@ -238,7 +358,7 @@ final class ScrapperService
                 $ex->status = $s;
             }
 
-            $profile->experience = $oList;
+            $profile->experience = Collection::make($oList);
 
             //Reset Seq
             //$profile = $this->getProfile();
@@ -251,7 +371,7 @@ final class ScrapperService
     public function parseSHMetadata($shmdata, $profile)
     {
         $shmd = new SHMetadata();
-        $shmd->id = new \MongoId(null);
+        $shmd->id(new \MongoId());
         $shmd->hash=$this->getArrayValue($shmdata, "hash");
         $shmd->zipResumesS3path = $this->getArrayValue("zipResumesS3path", "");
         $shmd->zipMetadataS3path = $this->getArrayValue($shmdata, "zipMetadataS3path");
