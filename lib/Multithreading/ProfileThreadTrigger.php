@@ -114,8 +114,11 @@ class ProfileThreadTrigger {
         $profiles = $this->readJson($this->jsonFile);
         if($this->totalLimit)
             $profiles = array_slice($profiles, $this->start, $this->totalLimit);
-
-        $this->startPool($profiles, 0);
+        if(count($profiles) > 0){
+            $this->startPool($profiles, 0);
+        } else {
+            echo "Profiles count is from start\n";
+        }
 //        $this->start($profiles, $this->start);
         //start queing jobs;
         $end_time = time();
@@ -159,4 +162,4 @@ class ProfileThreadTrigger {
 //            $this->workers[$i]->join();
 //        }
     }
-} 
+}

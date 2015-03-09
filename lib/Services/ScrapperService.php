@@ -262,7 +262,7 @@ final class ScrapperService
             }
         }
 //        $this->currentProfile = $profile;
-        $name = $this->getArrayValue($shJson, 'name'); // $this->getDataByKey($data, 'name', true);
+        $name = $this->getDataByKey($data, 'name', true); // $this->getDataByKey($data, 'name', true);
 
         if ($name) {
             $profile->name = $name;
@@ -298,6 +298,8 @@ final class ScrapperService
 //            $this->setProfile($profile);
 //            $profile->Initialize();
 //            print_r($profile);exit;
+        } else {
+            echo "Profile name not found skipped - $url\n";
         }
 
         return $profile;
