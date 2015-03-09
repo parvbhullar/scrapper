@@ -29,9 +29,11 @@ final class ScrapperService
     const CS_CRAWLED = 1;
     const CS_PARSED = 2;
     const CS_ES_UPDATED = 3;
+    private $gender;
 
-    public function __construct($jsonPath = "", $htmlDir = "")
+    public function __construct($jsonPath = "", $htmlDir = "", $gender = false)
     {
+        $this->gender = $gender;
         $this->jsonFilePath = $jsonPath;
         $this->htmlDir = $htmlDir;
     }
@@ -56,12 +58,12 @@ final class ScrapperService
             if (isset($l['hash']) && isset($l['url'])) {
                 $filePath = $this->htmlDir . DIRECTORY_SEPARATOR . $l['hash'] . ".html";
 //                echo "Scraping url - $t";//.$l['url']. " file path - $filePath\n";
-                $json = $this->scrapAll($l['url'], $filePath);
+                $json = true;// $this->scrapAll($l['url'], $filePath);
                 if ($json) {
                     $d = dirname(dirname(__DIR__)) . "/file.json";
 //                   file_put_contents($d, json_encode($json));
                     //create profile
-                    $this->createProfiles($l['url'], $l, $json);
+                    $this->createProfiles($l['url'], $l, $filePath);
                     $jsonList = [];
                 }
             }
@@ -215,15 +217,15 @@ final class ScrapperService
             if (isset($l['hash']) && isset($l['url'])) {
                 $filePath = $htmlDir . DIRECTORY_SEPARATOR . $l['hash'] . ".html";
                 echo "Scraping url - $t"; //.$l['url']. " file path - $filePath\n";
-                $json = $this->scrapAll($l['url'], $filePath);
-                if ($json) {
+//                $json = $this->scrapAll($l['url'], $filePath);
+//                if ($json) {
                     $d = dirname(dirname(__DIR__)) . "/file.json";
 //                   file_put_contents($d, json_encode($json));
                     //create profile
-                    $this->createProfiles($l['url'], $l, $json);
+                    $this->createProfiles($l['url'], $l, $filePath);
                     $jsonList = [];
                     $i++;
-                }
+//                }
                 $t++;
             }
             if ($t >= $limit) {
@@ -237,17 +239,17 @@ final class ScrapperService
 
     }
 
-    public function createProfiles($url, $sh, $scrappedJson)
+    public function createProfiles($url, $sh, $filePath =false)
     {
-        $profile = $this->parseProfile($scrappedJson[$url], $sh);
+        $profile = $this->parseProfile($url, $sh, $filePath);
         //print_r($scrappedJson[$url]);exit;
         $d = dirname(dirname(__DIR__)) . "/profile.json";
 
     }
 
-    public function parseProfile($data, $shJson)
+    public function parseProfile($url, $shJson, $filePath)
     {
-        $url = $this->getArrayValue($shJson, 'url');
+//        $url = $this->getArrayValue($shJson, 'url');
         $profile = Profiles::one(array("source" => trim($url)));
         if (!$profile) {
             $profile = new Profiles();
@@ -261,6 +263,10 @@ final class ScrapperService
                 return false;
             }
         }
+        $data = $this->scrapAll($url, $filePath);
+        $data = $data[$url];
+//        print_r($data);exit;
+
 //        $this->currentProfile = $profile;
         $name = $this->getDataByKey($data, 'name', true); // $this->getDataByKey($data, 'name', true);
 
@@ -682,10 +688,11 @@ final class ScrapperService
     }
 //echo getGender('markus'); //Output: male
     public function getGender($name) {
-        return null;
+//        return null;
         $namePart = explode(" ", $name);
         $firstName = $namePart[0];
-        //  $this->_print("Gender update from APIS : " . $firstName);
+        return $this->gender ? $this->gender->getGender($firstName) : null;
+                //  $this->_print("Gender update from APIS : " . $firstName);
 //        $purl = 'http://api.genderize.io?name='.$firstName;
         //        $json = $this->curlURL($purl);
         $json = file_get_contents('https://gender-api.com/get?name='.urlencode($firstName));

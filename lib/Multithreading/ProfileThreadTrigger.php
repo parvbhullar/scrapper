@@ -9,12 +9,14 @@
 namespace Multithreading;
 
 use Model\Profiles;
+use Services\Gender;
 use Services\ScrapperService;
 
 class ProfileThreadTrigger {
     private $threads, $workers = [];
     private $jsonFile, $batchLimit, $rootPath, $total = 0, $start =0, $totalLimit = 0;
     private $startTime = 0;
+    private $gender;
     public function __construct($jsonFile, $start= 0, $totalLimit = 500, $threads = 5, $batchLimit = 100, $rootPath = false){
         $this->threads = $threads;
         $this->jsonFile = $jsonFile;
@@ -22,6 +24,7 @@ class ProfileThreadTrigger {
         $this->rootPath = $rootPath;
         $this->totalLimit = $totalLimit;
         $this->start = $start;
+        $this->gender = new Gender();
     }
 
     public function start($profiles, $last = 0){
@@ -30,7 +33,7 @@ class ProfileThreadTrigger {
         echo "start from $last - totalLimit {$this->totalLimit} - batchLimit = {$this->batchLimit} - threads = {$this->threads}"."\n";
         foreach (range(0, $this->threads-1) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
-            $this->workers[$i] = new ProfileParseWorker($i, null, $sProfiles, $this->rootPath);
+            $this->workers[$i] = new ProfileParseWorker($i, null, $sProfiles, $this->jsonFile, $this->rootPath, $this->gender);
             $this->workers[$i]->start(PTHREADS_INHERIT_NONE); //parseProfiles($this->rootPath);
 //            $this->workers[$i]->run(); //parseProfiles($this->rootPath);
 //            $last = $this->workers[$i]->getLast();
@@ -70,7 +73,7 @@ class ProfileThreadTrigger {
         $this->total += $iMaxThread * $this->batchLimit;
         foreach (range(0, $iMaxThread) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
-            $t = new ProfileParseWorker($i, null, $sProfiles, $this->rootPath);
+            $t = new ProfileParseWorker($i, null, $sProfiles, $this->jsonFile, $this->rootPath, $this->gender);
 //            $t->start();
             $pool->submit($t);
             $this->workers[$i] = $t;
@@ -110,6 +113,8 @@ class ProfileThreadTrigger {
     }
 
     public function run(){
+
+
         $start_time = $this->startTime = time();
         $profiles = $this->readJson($this->jsonFile);
         if($this->totalLimit)

@@ -13,21 +13,25 @@ use Hq\CrawlBundle\CustomClasses\ESParser;
 use Hq\CrawlBundle\CustomClasses\ESProfile;
 use Hq\CrawlBundle\CustomClasses\HQCrawlConstants;
 use Hq\CrawlBundle\Services\LinkedInParserService;
+use Services\Gender;
 use Services\ScrapperService;
 
 class ProfileParseWorker extends \Thread {
     private $workerId;
     private $profiles;
     private $batchLimit;
-    private $container, $dm, $rootPath;
+    private $container, $dm, $rootPath, $metaPath;
     private $threadTook = "NA";
-    public function __construct($id, $container, $profiles, $rootPath = false)
+    private $gender;
+    public function __construct($id, $container, $profiles, $metaPath, $rootPath = false, $gender= false)
     {
+        $this->gender = $gender;
         $this->workerId = $id;
         $this->profiles = $profiles;
         $this->container = $container;
 //        $this->dm =  $this->container->get('doctrine_mongodb')->getManager();
         $this->rootPath = $rootPath;
+        $this->metaPath = $metaPath;
 //        $this->start();
     }
 
@@ -47,7 +51,7 @@ class ProfileParseWorker extends \Thread {
     public function parseProfiles($rootPath = false) {
         $start_time = time();
 //        echo $this->batchLimit." batch limit, last {$this->last}\n";
-        $sS = new ScrapperService("", $rootPath);
+        $sS = new ScrapperService($this->metaPath, $rootPath, $this->gender);
         $sS->process($this->profiles);
 
         $end_time = time();
