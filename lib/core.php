@@ -6,8 +6,9 @@
  * Time: 3:53 PM
  */
 require dirname(__DIR__)."/vendor/autoload.php";
-define("ROOT", dirname(__DIR__));
-require ROOT."/vendor/gabordemooij/redbean/RedBean/redbean.inc.php";
+//define("ROOT", dirname(__DIR__));
+if(!class_exists('\R'))
+    require dirname(__DIR__)."/vendor/gabordemooij/redbean/RedBean/redbean.inc.php";
 class core {
     public function init(){
 
@@ -16,7 +17,7 @@ class core {
         \Purekid\Mongodm\MongoDB::setConfigBlock('default', array(
             'connection' => array(
                 'hostnames' => 'localhost', #104.236.112.37
-                'database'  => 'scrapper',
+                'database'  => 'new-hq',
 //                            'username'  => 'root',
 //                            'password'  => '',
                 'options'  => array()

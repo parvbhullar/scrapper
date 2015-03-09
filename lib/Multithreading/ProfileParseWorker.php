@@ -30,6 +30,10 @@ class ProfileParseWorker extends \Thread {
         $this->rootPath = $rootPath;
     }
 
+    public function start($options = PTHREADS_INHERIT_NONE){
+        parent::start($options);
+    }
+
     public function _print($msg, $print = true){
         if($print)
             echo $msg . PHP_EOL;
@@ -63,7 +67,9 @@ class ProfileParseWorker extends \Thread {
     }
 
     public function initiate(){
-        require dirname(__DIR__)."/core.php";
+//        if(!class_exists('\core')){
+            require dirname(__DIR__)."/core.php";
+//        }
         $c = new \core();
         $c->init();
     }
