@@ -13,19 +13,21 @@ use Services\ScrapperService;
 
 class ProfileThreadTrigger {
     private $threads, $workers = [];
-    private $jsonFile, $batchLimit, $rootPath, $total = 0, $totalLimit = 0;
+    private $jsonFile, $batchLimit, $rootPath, $total = 0, $start =0, $totalLimit = 0;
     private $startTime = 0;
-    public function __construct($jsonFile, $totalLimit = 500, $threads = 5, $batchLimit = 100, $rootPath = false){
+    public function __construct($jsonFile, $start= 0, $totalLimit = 500, $threads = 5, $batchLimit = 100, $rootPath = false){
         $this->threads = $threads;
         $this->jsonFile = $jsonFile;
         $this->batchLimit = $batchLimit;
         $this->rootPath = $rootPath;
         $this->totalLimit = $totalLimit;
+        $this->start = $start;
     }
 
     public function start($profiles, $last = 0){
         $this->total += $this->threads * $this->batchLimit;
-//        echo "Rootpath". $this->rootPath."\n";
+//        print_r($this); exit;
+        echo "start from $last - totalLimit {$this->totalLimit} - batchLimit = {$this->batchLimit} - threads = {$this->threads}"."\n";
         foreach (range(0, $this->threads-1) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
             $this->workers[$i] = new ProfileParseWorker($i, null, $sProfiles, $this->rootPath);
@@ -61,11 +63,11 @@ class ProfileThreadTrigger {
         }
     }
 
-    public function startPool($profiles){
+    public function startPool($profiles, $last = 0){
+        echo "start from $last - totalLimit {$this->totalLimit} - batchLimit = {$this->batchLimit} - threads = {$this->threads}"."\n";
         $iMaxThread = (int)(count($profiles) / $this->batchLimit);
         $pool = new \Pool($this->threads, 'Multithreading\PoolWorker', [PTHREADS_INHERIT_NONE]);
-        $total = $this->threads * $this->batchLimit;
-        $last = 0;
+        $this->total += $this->threads * $this->batchLimit;
         foreach (range(0, $iMaxThread) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
             $t = new ProfileParseWorker($i, null, $sProfiles, $this->rootPath);
@@ -101,17 +103,20 @@ class ProfileThreadTrigger {
                 }
             }
         }
+        if($this->totalLimit > $this->total){
+            echo "Inside Total limit - {$this->totalLimit} - {$this->total}\n";
+            $this->startPool($profiles, $last);
+        }
     }
 
     public function run(){
-        $total = $this->threads * $this->batchLimit;
         $start_time = $this->startTime = time();
         $profiles = $this->readJson($this->jsonFile);
         if($this->totalLimit)
-            $profiles = array_slice($profiles, 0, $this->totalLimit);
+            $profiles = array_slice($profiles, $this->start, $this->totalLimit);
 
-//        $this->startPool($profiles);
-        $this->start($profiles);
+        $this->startPool($profiles, 0);
+//        $this->start($profiles, $this->start);
         //start queing jobs;
         $end_time = time();
         $duration = $end_time - $start_time;

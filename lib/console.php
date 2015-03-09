@@ -12,6 +12,7 @@ class console {
     private $argv = array();
     public function __construct($argv){
         $command = isset($argv[1])? $argv[1] : "Undefined";
+//        print_r($command); exit;
         $c = new core();
         $c->init();
         switch($command)
@@ -38,10 +39,11 @@ class console {
                 $dir = isset($argv[3])? $argv[3] : "";
                 $threads = isset($argv[4])? $argv[4] : 5;
                 $batch = isset($argv[5])? $argv[5] : 100;
-                $limit = isset($argv[6])? $argv[6] : 500000;
+                $start = isset($argv[6])? $argv[6] : 0;
+                $limit = isset($argv[7])? $argv[7] : 500;
                 if($jsonFile && $dir){
 //                    $this->init();
-                    $scrpService = new \Multithreading\ProfileThreadTrigger($jsonFile, $limit, $threads, $batch, $dir);
+                    $scrpService = new \Multithreading\ProfileThreadTrigger($jsonFile, $start, $limit, $threads, $batch, $dir);
                     $scrpService->run();
                 } else {
                     echo "Command is\n";
@@ -97,9 +99,10 @@ class console {
 
 }
 //php lib/console.php scrap "H:\IINCORE\COLLEGEFEED\scrap-hero-data\li.json" "H:\IINCORE\COLLEGEFEED\scrap-hero-data\htmls" 50
-//php lib/console.php scrap_multithread "H:\IINCORE\COLLEGEFEED\scrap-hero-data\li.json" "H:\IINCORE\COLLEGEFEED\scrap-hero-data\htmls" 5 50 250
+//php lib/console.php scrap_multithread "H:\IINCORE\COLLEGEFEED\scrap-hero-data\li.json" "H:\IINCORE\COLLEGEFEED\scrap-hero-data\htmls" 5 50 0 250
+//5 = threads, 50 = profiles per batch, 0 = start head on file, 250 = total profiles to be parsed
 
 //php lib/console.php scrap "/root/phq/sh/json_feb_17_99k.json" "/root/phq/sh/deb17/" 20
-//php lib/console.php scrap_multithread "/root/phq/sh/json_feb_17_99k.json" "/root/phq/sh/deb17/" 5 20
+//php lib/console.php scrap_multithread "/root/phq/sh/json_feb_17_99k.json" "/root/phq/sh/deb17/" 5 200 0 20
 
 $app = new Console($argv);
