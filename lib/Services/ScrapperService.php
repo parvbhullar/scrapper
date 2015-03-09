@@ -571,7 +571,7 @@ final class ScrapperService
         if ($val && is_string($val)) {
             //Check for xml chars
 
-            $val = mb_convert_encoding($val, "UTF-8", "HTML-ENTITIES"); // preg_replace_callback("/(&[#0-9a-z]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $val);
+//            $val = mb_convert_encoding($val, "UTF-8", "HTML-ENTITIES"); // preg_replace_callback("/(&[#0-9a-z]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $val);
 
 //            $val = mb_convert_encoding($val, "UTF-8", "HTML-ENTITIES");// preg_replace_callback("/(&[#0-9a-z]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $val);
 
