@@ -51,7 +51,11 @@ class console {
                 }
                 break;
             case "mysql":
-                $rows = \R::getAll("select * from cf_scrapped_data");
+                $threads = isset($argv[2])? $argv[2] : 5;
+                $batch = isset($argv[3])? $argv[3] : 100;
+                $start = isset($argv[4])? $argv[4] : 1;
+                $limit = isset($argv[5])? $argv[5] : 500;
+                $rows = \R::getAll("select * from cf_scrapped_data");// limit ". $start."," .$$limit);
                 if($rows){
 //                    $this->init();
                     $scrpService = new \Services\ScrapperService();

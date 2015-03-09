@@ -36,6 +36,7 @@ final class Profiles extends Model
         'sourceService' => array('default'=>'','type'=>'string'),
         'resumeLastUpdated' => array('type'=>'date'),
         'updatedInES' => array('default'=>'','type'=>'string'),
+        'deleted' => array('default'=>false,'type'=>'boolean'),
         'SHMetadata' => array('model'=>'Model\\ShMetadata','type'=>'reference'), # 1 targetDocument="SHMetadata", 2 cascade="persist"
 
         'status' => array('default'=>1, 'type'=>'integer'), #0 deactive, 1 active, 2 deleted

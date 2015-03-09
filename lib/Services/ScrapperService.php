@@ -72,25 +72,39 @@ final class ScrapperService
 
     public function sqlToMongo($sqldata)
     {
-        {
+        $url = trim($sqldata['source']);
+        $profile = Profiles::one(array("source" => $url));
+        if (!$profile) {
             $profile = new Profiles();
             $profile->id(new \MongoId());
+            $id = $profile->Add();
+            $profile = Profiles::id($id);
+            $profile->source = $url;
+        } else {
+            if ($profile->status == self::CS_PARSED) {
+                echo "Profile already parsed - $url\n";
+                return false;
+            }
+        }
+        {
+//            $profile = new Profiles();
+//            $profile->id(new \MongoId());
             $profile->name = $sqldata['name'];
             $profile->source= $sqldata['source'];
             //  $profile->title = $sqldata['title'];
-            $profile->gender = $sqldata['Gender'];
+            $gender = $sqldata['Gender'] ? $sqldata['Gender'] : $this->getGender($sqldata['name']);
+            $profile->gender = $gender;
             $profile->profileStore = null; // $this->getDataByKey($data, $profile,'profileStore');
-
 
             $profile->industry = $sqldata['Industry'];
             $profile->locality = $sqldata['Location'];
             $profile->sourceService = "";
             $s = self::CS_PARSED; //Set status Parsed
             $profile->status = $s;
-        //    print_r(($sqldata));
+            //    print_r(($sqldata));
 //            print_r(json_decode($sqldata['Education']));
 //            print_r(json_decode($sqldata['Experience']));
-       //     exit;
+            //     exit;
             $profile =  $this->parseDBEducation($this->textToObj($sqldata['Education']), $profile);
             $data = $this->textToObj($sqldata['Experience']);
             $profile = $this->parseDBExperience($data, $profile);
@@ -98,7 +112,7 @@ final class ScrapperService
             $date->setISODate(1900, 1, 1);
             $profile->resumeLastUpdated = $date; // $this->getValidDate($this->getText($profile['resumeLastUpdated']));
             $profile->updatedInES = false; // $this->getDataByKey($data, 'updatedInES', true);
-
+            $profile->deleted = $sqldata['deleted'];
             $s = self::CS_PARSED; //Set status Parsed
             $profile->status = $s;
             $id = $profile->Add();
@@ -114,9 +128,10 @@ final class ScrapperService
         $list[] = json_decode($text, true);
         $data = array();
         foreach ($list as $l) {
-            foreach ($l as $k => $v) {
-                $data[$k] = $v;
-            }
+            if($l)
+                foreach ($l as $k => $v) {
+                    $data[$k] = $v;
+                }
         }
         return $data;
     }
@@ -219,12 +234,12 @@ final class ScrapperService
                 echo "Scraping url - $t"; //.$l['url']. " file path - $filePath\n";
 //                $json = $this->scrapAll($l['url'], $filePath);
 //                if ($json) {
-                    $d = dirname(dirname(__DIR__)) . "/file.json";
+                $d = dirname(dirname(__DIR__)) . "/file.json";
 //                   file_put_contents($d, json_encode($json));
-                    //create profile
-                    $this->createProfiles($l['url'], $l, $filePath);
-                    $jsonList = [];
-                    $i++;
+                //create profile
+                $this->createProfiles($l['url'], $l, $filePath);
+                $jsonList = [];
+                $i++;
 //                }
                 $t++;
             }
@@ -495,20 +510,24 @@ final class ScrapperService
             if (is_string($dateStr)) {
                 $dv = intval($dateStr);
             }
+            $date = $this->validateDate($dateStr);
 
-            if ($dv) {
+            if (!$date && $dv) {
 //                echo("Date - dv true str $dateStr\n");
                 $date = $this->validateDate("Jan " . $dateStr);
-            } else
-                $date = $this->validateDate($dateStr);
+            }
+
 
             if (!$date) {
-                return null;
+                $date = new \DateTime();
+                $date->setISODate(1900, 1, 1);
             }
 //            echo("Returning Date - dv true str ".$date->format("M Y")."\n");
             return $date;
         }
-        return null;
+        $date = new \DateTime();
+        $date->setISODate(1900, 1, 1);
+        return $date;
 
     }
 
@@ -692,7 +711,7 @@ final class ScrapperService
         $namePart = explode(" ", $name);
         $firstName = $namePart[0];
         return $this->gender ? $this->gender->getGender($firstName) : null;
-                //  $this->_print("Gender update from APIS : " . $firstName);
+        //  $this->_print("Gender update from APIS : " . $firstName);
 //        $purl = 'http://api.genderize.io?name='.$firstName;
         //        $json = $this->curlURL($purl);
         $json = file_get_contents('https://gender-api.com/get?name='.urlencode($firstName));
@@ -741,3 +760,5 @@ final class ScrapperService
         return $jsonstring;
     }
 }
+
+//9 3 2015 dates shuld be changed if true set null

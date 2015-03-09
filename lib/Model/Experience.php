@@ -25,8 +25,8 @@ final class Experience extends Model
         'role' => array('default'=>'','type'=>'string'),
         'companyName' => array('default'=>'','type'=>'string'),
         'industry' => array('default'=>'','type'=>'string'),
-        'fromDate' => array('type'=>'date', 'default'=> null),
-        'toDate' => array('type'=>'date', 'default'=> null),
+        'fromDate' => array('type'=>'date'),
+        'toDate' => array('type'=>'date'),
         'duration' => array('default'=>'','type'=>'string'),
         'current' => array('type'=>'boolean'),
         'location' => array('default'=>'','type'=>'string'),
@@ -35,7 +35,7 @@ final class Experience extends Model
 
         'status' => array('default'=>1, 'type'=>'integer'), #0 deactive, 1 active, 2 deleted
         'created_by' => array('default'=>'Unknown','type'=>'string'),
-        'created_at' => array('type'=>'date', 'default'=> null)
+        'created_at' => array('type'=>'date')
     );
     public function Add(){
         try
