@@ -67,7 +67,7 @@ class ProfileThreadTrigger {
         echo "start from $last - totalLimit {$this->totalLimit} - batchLimit = {$this->batchLimit} - threads = {$this->threads}"."\n";
         $iMaxThread = (int)(count($profiles) / $this->batchLimit);
         $pool = new \Pool($this->threads, 'Multithreading\PoolWorker', [PTHREADS_INHERIT_NONE]);
-        $this->total += $this->threads * $this->batchLimit;
+        $this->total += $iMaxThread * $this->batchLimit;
         foreach (range(0, $iMaxThread) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
             $t = new ProfileParseWorker($i, null, $sProfiles, $this->rootPath);
@@ -105,7 +105,7 @@ class ProfileThreadTrigger {
         }
         if($this->totalLimit > $this->total){
             echo "Inside Total limit - {$this->totalLimit} - {$this->total}\n";
-            $this->startPool($profiles, $last);
+//            $this->startPool($profiles, $last);
         }
     }
 
