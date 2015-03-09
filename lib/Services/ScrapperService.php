@@ -72,7 +72,7 @@ final class ScrapperService
 
     public function sqlToMongo($sqldata)
     {
-        $url = trim($sqldata['source']);
+        $url = trim($this->getArrayValue($sqldata, 'source'));
         $profile = Profiles::one(array("source" => $url));
         if (!$profile) {
             $profile = new Profiles();
@@ -87,27 +87,24 @@ final class ScrapperService
             }
         }
         {
-//            $profile = new Profiles();
-//            $profile->id(new \MongoId());
-            $profile->name = $sqldata['name'];
-            $profile->source= $sqldata['source'];
+            $profile->name =  $this->getArrayValue($sqldata, 'name'); //$sqldata['name'];
+            $profile->source= $this->getArrayValue($sqldata, 'source'); //$sqldata['source'];
             //  $profile->title = $sqldata['title'];
-            $gender = $sqldata['Gender'] ? $sqldata['Gender'] : $this->getGender($sqldata['name']);
+            $gen = $this->getArrayValue($sqldata, 'Gender');
+            $gender = $gen ? $gen : $this->getGender($this->getArrayValue($sqldata, 'name'));
             $profile->gender = $gender;
             $profile->profileStore = null; // $this->getDataByKey($data, $profile,'profileStore');
 
-            $profile->industry = $sqldata['Industry'];
-            $profile->locality = $sqldata['Location'];
+            $profile->industry = $this->getArrayValue(json_decode($this->getArrayValue($sqldata, 'Industry')),0); // $sqldata['Industry'];
+            $location = $this->getArrayValue($sqldata,'Location');
+            $profile->locality = $this->getArrayValue(json_decode($location),0);// $sqldata['Location'];
             $profile->sourceService = "";
             $s = self::CS_PARSED; //Set status Parsed
             $profile->status = $s;
-            //    print_r(($sqldata));
-//            print_r(json_decode($sqldata['Education']));
-//            print_r(json_decode($sqldata['Experience']));
-            //     exit;
-            $profile =  $this->parseDBEducation($this->textToObj($sqldata['Education']), $profile);
-            $data = $this->textToObj($sqldata['Experience']);
-            $profile = $this->parseDBExperience($data, $profile);
+            $edu = $this->textToObj($this->getArrayValue($sqldata, 'Education'));
+            $profile =  $this->parseDBEducation($edu, $profile);
+            $exp = $this->textToObj($this->getArrayValue($sqldata, 'Experience')); //$sqldata['Experience']);
+            $profile = $this->parseDBExperience($exp, $profile);
             $date = new \DateTime();
             $date->setISODate(1900, 1, 1);
             $profile->resumeLastUpdated = $date; // $this->getValidDate($this->getText($profile['resumeLastUpdated']));
@@ -141,28 +138,25 @@ final class ScrapperService
         if ($list) {
             $i = 1;
             $oList = [];
-
             foreach ($list as $expArr) {
                 $ex = new Experience();
                 $ex->id(new \MongoId());
-                //   $ex->id = new \MongoId();
-                $ex->companyName = $expArr['Company'];
-                $ex->role = $expArr['Title'];
-                $ex->industry = $profile->industry;
-                $ex->location = $expArr['Location'];
-                $ex->description = $expArr['Description'];
-                $ex->fromDate = $this->getValidDate($expArr['Start Date']);
-                $endDate = $expArr['End Date'];
+                $ex->companyName = $this->getArrayValue($expArr, 'Company'); //$expArr['Company'];
+                $ex->role = $this->getArrayValue($expArr, 'Title'); // $expArr['Title'];
+                $ex->industry =  $profile->industry;
+                $ex->location =  $this->getArrayValue($expArr, 'Location'); //$expArr['Location'];
+                $ex->description =  $this->getArrayValue($expArr, 'Description'); //$expArr['Description'];
+                $fromDate = $this->getArrayValue($expArr, 'Start Date');// $expArr['Start Date'];
+                $ex->fromDate = $this->getValidDate($fromDate);
+                $endDate = $this->getArrayValue($expArr, 'End Date');// $expArr['End Date'];
                 $ex->toDate = $this->getValidDate($endDate);
-                $duration = $this->dateDuration($expArr['Start Date'], $expArr['End Date']);
+                $duration = $this->dateDuration($fromDate, $endDate);
                 $current = $endDate ? false : true;
                 $ex->current = $current;
                 $ex->createdAt = new \DateTime();
                 $ex->updatedAt = new \DateTime();
                 $ex->seq = $i;
                 $ex->duration = $duration;
-
-                $obl = false; //$this->getRepo('CrawlBundle:Experience')->checkExperience($profile, $ex);
                 $ex->profile = $profile;
                 //print_r($ex);
                 $ex->Add();
@@ -171,12 +165,7 @@ final class ScrapperService
                 $s = 0;
                 $ex->status = $s;
             }
-
             $profile->experience = Collection::make($oList);;
-            //Reset Seq
-            //$profile = $this->getProfile();
-            //  $this->_print(count($list)." experiences added");
-
         }
         return $profile;
     }
@@ -185,30 +174,25 @@ final class ScrapperService
     {
         if ($list) {
             $i = 1;
-//            $profile = $this->deleteEducation($profile, $profile->getEducation());
             $oList = [];
-//[Details] =>
-//[Duration] => 1983 - 1988
-//[AcadsRec] => 1
+//[Details] =>//[Duration] => 1983 - 1988//[AcadsRec] => 1
             foreach ($list as $edu) {
                 $e = new Education();
                 $e->id(new \MongoId());
-                $e->school = $edu["School"];
-                $e->degree = $edu["Name"];
-                $e->program = $edu["Program"];
-                $e->gpa = $edu["GPA"];
+                $e->school =  $this->getArrayValue($edu, 'School'); // $edu["School"];
+                $e->degree =$this->getArrayValue($edu, 'Name'); // $edu["Name"];
+                $e->program =$this->getArrayValue($edu, 'Program'); // $edu["Program"];
+                $e->gpa =$this->getArrayValue($edu, 'GPA'); // $edu["GPA"];
                 // $e->fromDate=$this->getValidDate($edu['start_date']);
-                $endDate = $edu['Year'];
+                $endDate =$this->getArrayValue($edu, 'Year'); // $edu['Year'];
                 $e->toDate = $this->getValidDate($endDate);
-                $e->year = $this->dateStringClean($edu['Year']);
+                $e->year = $this->dateStringClean($endDate);
                 $e->createdAt = new \DateTime();
                 $e->updatedAt = new \DateTime();
                 $e->seq = $i;
                 $e->profile = $profile;
                 $s = 0;
                 $e->status = $s;
-                // $profile->addEducation($e);
-//                $this->addEducation($e);
                 $e->Add();
                 $oList[] = $e;
                 $i++;

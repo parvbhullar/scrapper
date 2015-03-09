@@ -47,7 +47,7 @@ final class Profiles extends Model
     public function Add(){
         try
         {
-            $res = false;//$this->IsExists();
+            $res = $this->IsExists();
             if($res != false)
             {
                 $obj = Profiles::id($res);
