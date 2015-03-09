@@ -59,7 +59,7 @@ class ProfileThreadTrigger {
         foreach (range(0, $iMaxThread) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
             $t = new ProfileParseWorker($i, null, $sProfiles, $this->rootPath);
-            $t->start();
+//            $t->start();
             $pool->submit($t);
             $this->workers[$i] = $t;
 //            $this->workers[$i]->start(PTHREADS_INHERIT_NONE); //parseProfiles($this->rootPath);
@@ -86,7 +86,8 @@ class ProfileThreadTrigger {
                 }
 //var_dump($key);
                 if(!$arg){
-                    var_dump($arg);
+//                    var_dump($arg);
+                    echo("Thread {$key} stopped\n");
                 }
             }
         }
@@ -95,8 +96,10 @@ class ProfileThreadTrigger {
     public function run(){
         $total = $this->threads * $this->batchLimit;
         $start_time = $this->startTime = time();
-        $profiles = $this->readJson($this->jsonFile);;
-        $profiles = array_slice($profiles, 0, $this->totalLimit);
+        $profiles = $this->readJson($this->jsonFile);
+        if($this->totalLimit)
+            $profiles = array_slice($profiles, 0, $this->totalLimit);
+        
         $this->startPool($profiles);
         //start queing jobs;
         $end_time = time();

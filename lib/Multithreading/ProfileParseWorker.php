@@ -28,6 +28,7 @@ class ProfileParseWorker extends \Thread {
         $this->container = $container;
 //        $this->dm =  $this->container->get('doctrine_mongodb')->getManager();
         $this->rootPath = $rootPath;
+//        $this->start();
     }
 
     public function start($options = PTHREADS_INHERIT_NONE){
@@ -67,9 +68,9 @@ class ProfileParseWorker extends \Thread {
     }
 
     public function initiate(){
-//        if(!class_exists('\core')){
+        if(!class_exists('core')){
             require dirname(__DIR__)."/core.php";
-//        }
+        }
         $c = new \core();
         $c->init();
     }
