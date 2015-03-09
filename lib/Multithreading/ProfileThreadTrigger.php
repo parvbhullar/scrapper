@@ -23,11 +23,10 @@ class ProfileThreadTrigger {
         $this->totalLimit = $totalLimit;
     }
 
-    public function start($profiles){
+    public function start($profiles, $last = 0){
         $this->total += $this->threads * $this->batchLimit;
-        $last = 0;
 //        echo "Rootpath". $this->rootPath."\n";
-        foreach (range(0, $this->threads) as $i) {
+        foreach (range(0, $this->threads-1) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
             $this->workers[$i] = new ProfileParseWorker($i, null, $sProfiles, $this->rootPath);
             $this->workers[$i]->start(PTHREADS_INHERIT_NONE); //parseProfiles($this->rootPath);
@@ -35,19 +34,30 @@ class ProfileThreadTrigger {
 //            $last = $this->workers[$i]->getLast();
             $last += $this->batchLimit;
             echo count($sProfiles)." profiles passed total profiles - ".count($profiles)."to worker thread $i".PHP_EOL;
-            $profiles = array_slice($profiles, $this->batchLimit, count($profiles));
+//            $profiles = array_slice($profiles, $this->batchLimit, count($profiles));
         }
-
-
-//        $pool = new \Pool(1, PoolWorker::class);
-//        $pool->submit(new MyWork("A"));
-//        $pool->submit(new MyWork("B"));
-//        $pool->submit(new MyWork("C"));
-        //remove processed profiles from array - call again until limit breaks
-        echo "Total limit - {$this->totalLimit} - {$this->total}\n";
-        if($this->total > $this->totalLimit){
+        $arg=true;
+        while($arg){
+            $arg=false;
+            foreach($this->workers as $key => $object){
+//    for ($i = 1; $i <= 5; $i++) {
+                $arg2=$object->isRunning();
+                if($arg2){
+                    $arg=$arg2;
+                }else{
+                    //var_dump($key);
+                    unset ($this->workers[$key]);
+                }
+//var_dump($key);
+                if(!$arg){
+//                    var_dump($arg);
+                    echo("Thread {$key} stopped\n");
+                }
+            }
+        }
+        if($this->totalLimit > $this->total){
             echo "Inside Total limit - {$this->totalLimit} - {$this->total}\n";
-            $this->start($profiles);
+            $this->start($profiles, $last);
         }
     }
 
@@ -100,7 +110,8 @@ class ProfileThreadTrigger {
         if($this->totalLimit)
             $profiles = array_slice($profiles, 0, $this->totalLimit);
 
-        $this->startPool($profiles);
+//        $this->startPool($profiles);
+        $this->start($profiles);
         //start queing jobs;
         $end_time = time();
         $duration = $end_time - $start_time;
