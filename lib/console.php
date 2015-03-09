@@ -38,7 +38,7 @@ class console {
                 $dir = isset($argv[3])? $argv[3] : "";
                 $threads = isset($argv[4])? $argv[4] : 5;
                 $batch = isset($argv[5])? $argv[5] : 100;
-                $limit = isset($argv[6])? $argv[6] : 500;
+                $limit = isset($argv[6])? $argv[6] : false;
                 if($jsonFile && $dir){
 //                    $this->init();
                     $scrpService = new \Multithreading\ProfileThreadTrigger($jsonFile, $limit, $threads, $batch, $dir);

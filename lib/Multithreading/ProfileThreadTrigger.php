@@ -99,7 +99,7 @@ class ProfileThreadTrigger {
         $profiles = $this->readJson($this->jsonFile);
         if($this->totalLimit)
             $profiles = array_slice($profiles, 0, $this->totalLimit);
-        
+
         $this->startPool($profiles);
         //start queing jobs;
         $end_time = time();
