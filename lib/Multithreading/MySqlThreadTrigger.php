@@ -12,7 +12,7 @@ use Model\Profiles;
 use Services\Gender;
 use Services\ScrapperService;
 
-class MysqlThreadTrigger {
+class MySqlThreadTrigger {
     private $threads, $workers = [];
     private $jsonFile, $batchLimit, $rootPath, $total = 0, $start =0, $totalLimit = 0;
     private $startTime = 0;
