@@ -55,15 +55,8 @@ class console {
                 $batch = isset($argv[3])? $argv[3] : 100;
                 $start = isset($argv[4])? $argv[4] : 1;
                 $limit = isset($argv[5])? $argv[5] : 500;
-                $rows = \R::getAll("select * from cf_scrapped_data");// limit ". $start."," .$$limit);
-                if($rows){
-//                    $this->init();
-                    $scrpService = new \Services\ScrapperService();
-                    foreach ($rows as $row)
-                    $scrpService->sqlToMongo($row);
-                } else {
-                    echo "Record not found.\n";
-                }
+                $scrpService = new \Multithreading\MysqlThreadTrigger("", $start, $limit, $threads, $batch);
+                $scrpService->run();
                 break;
             case "mysqlone":
                 $row = \R::getRow("select * from cf_scrapped_data");
@@ -107,6 +100,6 @@ class console {
 //5 = threads, 50 = profiles per batch, 0 = start head on file, 250 = total profiles to be parsed
 
 //php lib/console.php scrap "/root/phq/sh/json_feb_17_99k.json" "/root/phq/sh/deb17/" 20
-//php lib/console.php scrap_multithread "/root/phq/sh/json_feb_17_99k.json" "/root/phq/sh/deb17/" 5 200 0 20
+//php lib/console.php scrap_multithread "/var/www/shdata/li_data.json" "/var/www/shdata/htmls/" 5 200 0 20
 
 $app = new Console($argv);

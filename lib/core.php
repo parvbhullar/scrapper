@@ -16,15 +16,15 @@ class core {
 
         \Purekid\Mongodm\MongoDB::setConfigBlock('default', array(
             'connection' => array(
-                'hostnames' => 'localhost', #104.236.112.37
-                'database'  => 'new-hq',
+                'hostnames' => 'localhost', #104.155.217.153
+                'database'  => 'new-bi',
 //                            'username'  => 'root',
 //                            'password'  => '',
                 'options'  => array()
             )
         ));
 
-        $this->mysql('localhost','scrapper','root','');
+        $this->mysql('localhost','cf_feeds','root','');
     }
 
     public function mysql($host, $db, $user, $password){

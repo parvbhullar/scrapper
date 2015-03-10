@@ -33,7 +33,7 @@ class MysqlThreadTrigger {
         echo "start from $last - totalLimit {$this->totalLimit} - batchLimit = {$this->batchLimit} - threads = {$this->threads}"."\n";
         foreach (range(0, $this->threads-1) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
-            $this->workers[$i] = new ProfileParseWorker($i, null, $sProfiles, $this->jsonFile, $this->rootPath, $this->gender);
+            $this->workers[$i] = new MysqlParseWorker($i, null, $sProfiles, $this->jsonFile, $this->rootPath, $this->gender);
             $this->workers[$i]->start(PTHREADS_INHERIT_NONE); //parseProfiles($this->rootPath);
 //            $this->workers[$i]->run(); //parseProfiles($this->rootPath);
 //            $last = $this->workers[$i]->getLast();
@@ -73,7 +73,7 @@ class MysqlThreadTrigger {
         $this->total += $iMaxThread * $this->batchLimit;
         foreach (range(0, $iMaxThread) as $i) {
             $sProfiles = array_slice($profiles, $last, $this->batchLimit);
-            $t = new ProfileParseWorker($i, null, $sProfiles, $this->jsonFile, $this->rootPath, $this->gender);
+            $t = new MysqlParseWorker($i, null, $sProfiles, $this->jsonFile, $this->rootPath, $this->gender);
 //            $t->start();
             $pool->submit($t);
             $this->workers[$i] = $t;
@@ -99,7 +99,6 @@ class MysqlThreadTrigger {
                     //var_dump($key);
                     unset ($this->workers[$key]);
                 }
-//var_dump($key);
                 if(!$arg){
 //                    var_dump($arg);
                     echo("Thread {$key} stopped\n");
@@ -113,16 +112,14 @@ class MysqlThreadTrigger {
     }
 
     public function run(){
-
-
         $start_time = $this->startTime = time();
-        $profiles = $this->readJson($this->jsonFile);
+        $profiles = $this->getProfiles(array(), $this->start, $this->totalLimit);
         if($this->totalLimit)
             $profiles = array_slice($profiles, $this->start, $this->totalLimit);
         if(count($profiles) > 0){
             $this->startPool($profiles, 0);
         } else {
-            echo "Profiles count is from start\n";
+            echo "Profiles count is less from start\n";
         }
 //        $this->start($profiles, $this->start);
         //start queing jobs;
@@ -132,42 +129,9 @@ class MysqlThreadTrigger {
         echo("Profile process took" . " - " . $dv->m . " minutes " . $dv->s . " seconds \n");
     }
 
-    public function readJson($jsonFilePath){
-        $file = new \SplFileObject($jsonFilePath);
-        $i=0;
-        $list = [];
-        while (!$file->eof()) {
-            $jsonRow = $file->fgets();
-
-            $jsonData = json_decode($jsonRow, true);
-            $list[] = $jsonData;
-            $i++;
-        }
-        return $list;
-    }
-
-//    pick 1000 from db pass to thread worker in each thread by 100
-//    after processing pick next 1000 push 100 to each thread  [10 th * 100 = 1000]
-
-    public function runFromDb(){
-// Initialize and start the threads
-        $total = $this->threads * $this->batchLimit;
-        $profiles = Profiles::find(array('status' => ScrapperService::CS_CRAWLED), array(), array(), $total, 0);
-        $last = 0;
-        echo "Rootpath". $this->rootPath."\n";
-        foreach (range(0, $this->threads) as $i) {
-            $sProfiles = array_slice($profiles, $last, $this->batchLimit);
-            $this->workers[$i] = new ProfileParseWorker($i, null, $sProfiles, $this->rootPath);
-            $this->workers[$i]->start(PTHREADS_INHERIT_NONE); //parseProfiles($this->rootPath);
-//            $this->workers[$i]->run(); //parseProfiles($this->rootPath);
-//            $last = $this->workers[$i]->getLast();
-            $last += $this->batchLimit;
-            echo count($sProfiles)." profiles passed to worker thread $i".PHP_EOL;
-        }
-
-// Let the threads come back
-//        foreach (range(0, 5) as $i) {
-//            $this->workers[$i]->join();
-//        }
+    public function getProfiles($params = array(), $start = 0, $limit = 1000){
+        $q = "select * from cf_scrapped_data LIMIT $start,$limit";
+        $rows = \R::getAll($q);// limit ". $start."," .$$limit);
+        return $rows;
     }
 }

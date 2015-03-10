@@ -70,6 +70,20 @@ final class ScrapperService
         }
     }
 
+    public function processMysql($rows){
+        if($rows){
+            $firstId = $rows[0]['id'];
+            $lastId = $rows[count($rows)-1]['id'];
+            echo count($rows) . " records from mysql. first - $firstId, last - $lastId\n";
+            $scrpService = new \Services\ScrapperService();
+            foreach ($rows as $row) {
+                $scrpService->sqlToMongo($row);
+            }
+        } else {
+            echo "Records not found.\n";
+        }
+    }
+
     public function sqlToMongo($sqldata)
     {
         $url = trim($this->getArrayValue($sqldata, 'source'));
@@ -86,7 +100,9 @@ final class ScrapperService
                 return false;
             }
         }
-        {
+//        echo "Profile parsing id - {$sqldata['id']}\n";
+        //CHECK for duplicate
+        if(true){
             $profile->name =  $this->getArrayValue($sqldata, 'name'); //$sqldata['name'];
             $profile->source= $this->getArrayValue($sqldata, 'source'); //$sqldata['source'];
             //  $profile->title = $sqldata['title'];
