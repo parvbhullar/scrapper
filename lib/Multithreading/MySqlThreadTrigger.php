@@ -130,8 +130,22 @@ class MySqlThreadTrigger {
     }
 
     public function getProfiles($params = array(), $start = 0, $limit = 1000){
+        $servername = "localhost";
+        $username = "root";
+        $password = "";
+        $dbname = "cf_feeds";
+
+// Create connection
+        $conn = new \mysqli($servername, $username, $password, $dbname);
+// Check connection
+        if ($conn->connect_error) {
+            die("Connection failed: " . $conn->connect_error);
+        }
         $q = "select * from cf_scrapped_data LIMIT $start,$limit";
-        $rows = \R::getAll($q);// limit ". $start."," .$$limit);
+        $result = $conn->query($q);
+        $rows = $result->fetch_all(MYSQLI_ASSOC);// limit ". $start."," .$$limit);
+//        print_r($rows);exit;
+        $conn->close();
         return $rows;
     }
 }
