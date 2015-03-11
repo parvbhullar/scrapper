@@ -99,4 +99,5 @@ class console {
 //php lib/console.php scrap "/root/phq/sh/json_feb_17_99k.json" "/root/phq/sh/deb17/" 20
 //php lib/console.php scrap_multithread "/var/www/shdata/li_data.json" "/var/www/shdata/htmls/" 5 200 0 20
 //php lib/console.php mysql 5 20 0 200
+//php lib/console.php mysql_without_threading 10 100 0 1000
 $app = new Console($argv);
