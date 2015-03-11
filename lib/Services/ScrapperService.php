@@ -607,7 +607,9 @@ final class ScrapperService
 
 //            $val = mb_convert_encoding($val, "UTF-8", "HTML-ENTITIES");// preg_replace_callback("/(&[#0-9a-z]+;)/", function($m) { return mb_convert_encoding($m[1], "UTF-8", "HTML-ENTITIES"); }, $val);
 
-//            $val = str_replace("-","", $val);
+            if($this->strContains($val, "$(function()") || $this->strContains($val, "dust.Control")){
+                $val = "";
+            }
 //            $val = str_replace(",","", $val);
             return $val;
         }
