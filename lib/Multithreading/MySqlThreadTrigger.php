@@ -111,13 +111,18 @@ class MySqlThreadTrigger {
         }
     }
 
-    public function run(){
+    public function run($thread = true){
         $start_time = $this->startTime = time();
         $profiles = $this->getProfiles(array(), $this->start, $this->totalLimit);
         if($this->totalLimit)
             $profiles = array_slice($profiles, $this->start, $this->totalLimit);
         if(count($profiles) > 0){
+            if($thread){
             $this->startPool($profiles, 0);
+            } else {
+                $sS = new ScrapperService($this->jsonFile, $this->rootPath, $this->gender);
+                $sS->processMysql($profiles);
+            }
         } else {
             echo "Profiles count is less from start\n";
         }
