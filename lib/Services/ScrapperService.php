@@ -87,7 +87,7 @@ final class ScrapperService
     public function sqlToMongo($sqldata)
     {
         $url = trim($this->getArrayValue($sqldata, 'source'));
-        $profile = false;//Profiles::one(array("source" => $url));
+        $profile = Profiles::one(array("source" => $url));
         if (!$profile) {
             $profile = new Profiles();
             $profile->id(new \MongoId());
