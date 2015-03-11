@@ -77,7 +77,11 @@ final class ScrapperService
             echo count($rows) . " records from mysql. first - $firstId, last - $lastId\n";
             $scrpService = new \Services\ScrapperService();
             foreach ($rows as $row) {
-                $scrpService->sqlToMongo($row);
+                try{
+                    $scrpService->sqlToMongo($row);
+                } catch(\Exception $ex){
+                    echo "Exception - {$ex->getMessage()}.\n";
+                }
             }
         } else {
             echo "Records not found.\n";
@@ -256,10 +260,13 @@ final class ScrapperService
 
     public function createProfiles($url, $sh, $filePath =false)
     {
-        $profile = $this->parseProfile($url, $sh, $filePath);
-        //print_r($scrappedJson[$url]);exit;
-        $d = dirname(dirname(__DIR__)) . "/profile.json";
-
+        try{
+            $profile = $this->parseProfile($url, $sh, $filePath);
+            //print_r($scrappedJson[$url]);exit;
+            $d = dirname(dirname(__DIR__)) . "/profile.json";
+        } catch(\Exception $ex){
+            echo "Exception - {$ex->getMessage()}.\n";
+        }
     }
 
     public function parseProfile($url, $shJson, $filePath)
