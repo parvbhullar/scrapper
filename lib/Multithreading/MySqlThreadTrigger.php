@@ -114,8 +114,6 @@ class MySqlThreadTrigger {
     public function run($thread = true){
         $start_time = $this->startTime = time();
         $profiles = $this->getProfiles(array(), $this->start, $this->totalLimit);
-        if($this->totalLimit)
-            $profiles = array_slice($profiles, $this->start, $this->totalLimit);
         if(count($profiles) > 0){
             if($thread){
             $this->startPool($profiles, 0);
@@ -146,6 +144,7 @@ class MySqlThreadTrigger {
         if ($conn->connect_error) {
             die("Connection failed: " . $conn->connect_error);
         }
+        echo "From - $start total - $limit\n";
         $q = "select * from cf_scrapped_data LIMIT $start,$limit";
         $result = $conn->query($q);
         $rows = $result->fetch_all(MYSQLI_ASSOC);// limit ". $start."," .$$limit);
